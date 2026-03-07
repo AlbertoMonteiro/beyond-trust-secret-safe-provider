@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"c:/dev/beyond-trust-secret-safe-provider/BeyondTrust.SecretSafeProvider/bin/Debug/net10.0/terraform-provider-secretsafe\"*)",
+      "Bash(dotnet build BeyondTrust.SecretSafeProvider/BeyondTrust.SecretSafeProvider.csproj -c Debug)",
+      "Bash(TF_CLI_CONFIG_FILE=dev.tfrc terraform plan)",
+      "Bash(terraform version)",
+      "Bash(docker build -f Dockerfile.test -t bt-provider-test .)",
+      "Bash(docker run --rm bt-provider-test)",
+      "Bash(docker build --no-cache -f Dockerfile.test -t bt-provider-test .)",
+      "Bash(docker run --rm --entrypoint sh bt-provider-test -c \"ls -lh /providers/terraform-provider-secretsafe\")",
+      "Bash(docker history bt-provider-test --format \"{{.CreatedBy}}\\\\t{{.Size}}\")"
+    ]
+  }
+}
