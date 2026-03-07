@@ -4,11 +4,11 @@ A Terraform provider for [BeyondTrust Secret Safe](https://www.beyondtrust.com/s
 
 ## Why C#?
 
-Most Terraform providers are written in Go because Go's stdlib includes a pure-Go TLS/crypto stack, making it trivial to ship a self-contained binary. This provider demonstrates that C# + Native AOT can achieve the same result:
+Most Terraform providers are written in Go because Go's stdlib includes a pure-Go TLS/crypto stack, making it trivial to ship a self-contained binary. This provider achieves the same result in C#:
 
-- **No OpenSSL dependency at runtime** — TLS certificate generation uses [BouncyCastle.Cryptography](https://www.bouncycastle.org/csharp/), a pure .NET crypto library, avoiding the Linux `dlopen("libssl.so.3")` call that `RSA.Create()` would otherwise make.
+- **No extra OpenSSL install required** — TLS certificate generation uses [BouncyCastle.Cryptography](https://www.bouncycastle.org/csharp/), a pure .NET crypto library. The `hashicorp/terraform` Alpine image already ships `libssl.so.3` (via `ssl_client`), which covers the `HttpClient` HTTPS calls to the BeyondTrust API.
 - **Single native binary** — AOT compilation produces a standalone executable with no .NET runtime requirement.
-- **~15 MB** on Alpine/musl (linux-musl-x64, TrimMode=full).
+- **~15 MB** on Alpine/musl (`linux-musl-x64`, `TrimMode=full`).
 
 ---
 
@@ -36,13 +36,46 @@ When Terraform spawns the provider binary, it reads a single handshake line from
 ### gRPC Server
 
 - Kestrel listens on `IPAddress.Loopback` port `0` (OS assigns a random port).
-- HTTPS/mTLS with a self-signed certificate generated at startup via BouncyCastle — no OpenSSL required.
+- HTTPS/mTLS with a self-signed certificate generated at startup via BouncyCastle.
 - `AllowAnyClientCertificate()` — Terraform presents a client cert for mutual TLS.
 - `WebApplication.CreateSlimBuilder` is used (required for AOT compatibility).
 
-### Certificate Generation
+### Data Source Dispatch — Strategy Pattern
 
-`CertificateGenerator` uses BouncyCastle to generate an RSA 2048 keypair and a self-signed X.509 certificate entirely in managed code. The result is exported to PKCS12, loaded into `X509Certificate2`, and passed to Kestrel. No OpenSSL is touched at any point.
+`Terraform5ProviderService` has no knowledge of individual data sources. Each data source is an independent class implementing `IDataSourceHandler`, registered in DI as `IEnumerable<IDataSourceHandler>`. The service builds a lookup dictionary at startup and dispatches `ReadDataSource` calls by `TypeName`:
+
+```
+Services/
+├── DataSources/
+│   ├── IDataSourceHandler.cs              ← TypeName + GetSchema() + ReadAsync()
+│   └── CredentialDataSourceHandler.cs     ← secretsafe_credential_data
+└── Terraform5ProviderService.cs           ← orchestrates, no data source logic
+```
+
+To add a new data source: implement `IDataSourceHandler` and register it with `AddSingleton<IDataSourceHandler, NewHandler>()`. Nothing else changes.
+
+### BeyondTrust API Client
+
+`IBeyondTrustSecretSafe` is a [Refit](https://github.com/reactiveui/refit) interface that maps to the Secret Safe REST API. `IBeyondTrustApiFactory` creates an `HttpClient` per request using the provider configuration received from Terraform.
+
+```
+Services/
+├── IBeyondTrustSecretSafe.cs   ← Refit interface: SignAppin, GetSecret, Signout, DownloadSecret
+├── IBeyondTrustApiFactory.cs   ← creates IBeyondTrustSecretSafe with current config
+└── BeyondTrustApiFactory.cs
+```
+
+### Serialization
+
+Terraform communicates state via msgpack or JSON depending on context. `SmartSerializer` transparently handles both:
+
+```
+Serialization/
+├── SmartSerializer.cs   ← Deserialize<T>(DynamicValue) and Serialize<T>(T) → DynamicValue
+└── Json.cs              ← AOT-safe JsonSerializerContext (source generation)
+```
+
+Models use `[MessagePackObject]` + `[Key("attr_name")]` so attribute names match Terraform's snake_case convention in both msgpack and JSON.
 
 ### Project Structure
 
@@ -50,15 +83,38 @@ When Terraform spawns the provider binary, it reads a single handshake line from
 BeyondTrust.SecretSafeProvider/
 ├── Program.cs                        # Kestrel setup + handshake emission
 ├── CertificateGenerator.cs           # Pure-managed TLS cert via BouncyCastle
+├── Models/
+│   ├── CredentialData.cs             # secretsafe_credential_data state + schema
+│   ├── ProviderConfiguration.cs      # Provider block attributes (key, runas, baseUrl)
+│   ├── SecretValue.cs                # BeyondTrust API response model
+│   ├── KeyAndRunAs.cs                # PS-Auth header value
+│   └── TfTypes.cs                    # Terraform type byte strings
+├── Serialization/
+│   ├── SmartSerializer.cs            # msgpack/JSON unified serializer
+│   └── Json.cs                       # Source-generated JsonSerializerContext
 ├── Services/
-│   └── Terraform5ProviderService.cs  # gRPC service implementing Provider.ProviderBase
+│   ├── IBeyondTrustSecretSafe.cs     # Refit HTTP client interface
+│   ├── IBeyondTrustApiFactory.cs
+│   ├── BeyondTrustApiFactory.cs
+│   ├── DataSources/
+│   │   ├── IDataSourceHandler.cs
+│   │   └── CredentialDataSourceHandler.cs
+│   └── Terraform5ProviderService.cs  # gRPC Provider.ProviderBase implementation
 └── Protos/
-    └── tfplugin5.2.proto             # Official HashiCorp Terraform Plugin Protocol v5.2
+    └── tfplugin5.2.proto             # Official Terraform Plugin Protocol v5.2
+
+BeyondTrust.SecretSafeProvider.AppHost/
+├── AppHost.cs                        # .NET Aspire host (WireMock + provider)
+└── __admin/mappings/                 # WireMock mock definitions
+    ├── auth-signappin.json
+    ├── auth-signout.json
+    ├── secrets-get.json
+    └── secrets-download.json
 
 terraform/
-└── main.tf                           # Example Terraform config for local testing
+└── main.tf                           # Local dev Terraform config
 
-Dockerfile.test                       # Multistage: AOT build + terraform plan test
+Dockerfile.test                       # Multistage: AOT build + terraform plan
 publish-dev.ps1                       # Windows dev publish script
 ```
 
@@ -66,12 +122,13 @@ publish-dev.ps1                       # Windows dev publish script
 
 ## Prerequisites
 
-### For Windows development
+### Windows development
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [Terraform CLI](https://developer.hashicorp.com/terraform/install) (for local testing)
+- [Terraform CLI](https://developer.hashicorp.com/terraform/install)
+- [.NET Aspire workload](https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/setup-tooling) (for local API mocking)
 
-### For Linux/Alpine builds (AOT)
+### Linux/Alpine builds (AOT)
 
 - Docker (the build runs inside a container — no local toolchain needed)
 
@@ -89,11 +146,9 @@ dotnet build BeyondTrust.SecretSafeProvider/BeyondTrust.SecretSafeProvider.cspro
 .\publish-dev.ps1
 ```
 
-The `publish-dev.ps1` script runs `dotnet publish -r win-x64 -o dist` and removes all files except the `.exe`, ensuring Terraform's directory scan picks the correct file.
+`publish-dev.ps1` runs `dotnet publish -r win-x64 -o dist` and removes all files except the `.exe`, ensuring Terraform's directory scan picks the correct file.
 
 ### Linux/Alpine (Native AOT — production)
-
-Build inside Docker using the musl toolchain:
 
 ```bash
 docker build -f Dockerfile.test -t bt-provider-test .
@@ -102,7 +157,7 @@ docker build -f Dockerfile.test -t bt-provider-test .
 The `Dockerfile.test` is a multistage build:
 
 1. **Stage 1** (`mcr.microsoft.com/dotnet/sdk:10.0-alpine`) — installs the native toolchain (`clang`, `gcc`, `build-base`, `zlib-dev`, `musl-dev`, `gcompat`) and publishes the AOT binary.
-2. **Stage 2** (`hashicorp/terraform:latest`) — copies the binary, configures `dev_overrides`, and runs `terraform plan`.
+2. **Stage 2** (`hashicorp/terraform:latest`) — copies the binary, configures `dev_overrides`, and runs `terraform plan` against the WireMock server.
 
 > `gcompat` is required in the build stage so that `Grpc.Tools`' glibc-compiled `protoc` binary can run on musl Alpine via a glibc compatibility layer.
 
@@ -112,33 +167,30 @@ The `Dockerfile.test` is a multistage build:
 dotnet publish -c Release -r linux-musl-x64 -p:StaticExecutable=false -o /publish
 ```
 
-`StaticExecutable=false` is intentional: a fully static musl binary's `dlopen` may not search `/usr/lib`, which could break any dynamic library lookups. Dynamic linking (musl dynamic linker) is used instead.
+`StaticExecutable=false` is intentional: a fully static musl binary's `dlopen` may not search `/usr/lib`, which could break dynamic library lookups at runtime.
 
 ---
 
-## Testing
+## Local Development with Aspire
 
-### Docker (recommended)
+The `BeyondTrust.SecretSafeProvider.AppHost` project orchestrates local development using [.NET Aspire](https://learn.microsoft.com/en-us/dotnet/aspire/):
+
+- **WireMock** simulates the BeyondTrust Secret Safe API on a random port. Mappings live in `__admin/mappings/` and are hot-reloaded on change.
+- The provider binary is configured via Aspire service discovery to point at the WireMock instance.
 
 ```bash
-# Build and run terraform plan end-to-end
-docker build -f Dockerfile.test -t bt-provider-test .
-docker run --rm bt-provider-test
+dotnet run --project BeyondTrust.SecretSafeProvider.AppHost
 ```
 
-Expected output:
+Then in another terminal:
 
-```
-data.beyondtrust_hello.example: Read complete after 0s
-
-Changes to Outputs:
-  + content = "data from .NET 10"
+```bash
+terraform -chdir=terraform plan
 ```
 
-### Local (Windows)
+### Local `terraform.rc`
 
-1. Run `.\publish-dev.ps1` to produce `dist\terraform-provider-secretsafe.exe`.
-2. Add a `dev_overrides` block to `%APPDATA%\terraform.rc`:
+Add to `%APPDATA%\terraform.rc` (Windows) or `~/.terraformrc` (Linux/macOS):
 
 ```hcl
 provider_installation {
@@ -149,7 +201,7 @@ provider_installation {
 }
 ```
 
-3. Run `terraform plan` from the `terraform/` directory.
+> **Provider local name**: The Terraform config uses `secretsafe` as the provider local name (matching the `secretsafe_` prefix of all data sources). The registry source address remains `beyondtrust/secretsafe`.
 
 ---
 
@@ -161,8 +213,8 @@ Key `.csproj` settings:
 |---|---|---|
 | `PublishAot` | `true` | Native AOT compilation |
 | `PublishTrimmed` | `true` | Remove unused code |
-| `TrimMode` | `full` | Aggressive trim (~15 MB vs ~22 MB with `partial`) |
-| `StaticExecutable` | `true` | Default; overridden to `false` at publish time for Linux |
+| `TrimMode` | `full` | ~15 MB vs ~22 MB with `partial` |
+| `StaticExecutable` | `true` | Default; overridden to `false` for Linux at publish time |
 | `InvariantGlobalization` | `true` | Smaller binary; no ICU data needed |
 | `StackTraceSupport` | `false` | Size optimization |
 | `OptimizationPreference` | `Size` | Prefer smaller binary over speed |
@@ -172,16 +224,16 @@ Key `.csproj` settings:
 
 ## Current State
 
-The provider skeleton is complete and end-to-end functional:
+### Implemented RPCs
 
 | RPC | Status |
 |---|---|
-| `GetSchema` | Implemented — exposes `beyondtrust_hello` data source |
+| `GetSchema` | Implemented — discovers schemas from all registered `IDataSourceHandler`s |
 | `PrepareProviderConfig` | Stub (pass-through) |
-| `Configure` | Stub |
+| `Configure` | Implemented — deserializes `key`, `runas`, `baseUrl` from Terraform config |
 | `ValidateDataSourceConfig` | Stub |
 | `ValidateResourceTypeConfig` | Stub |
-| `ReadDataSource` | Implemented — returns `"data from .NET 10"` |
+| `ReadDataSource` | Implemented — dispatches to handler by `TypeName`, returns Terraform Diagnostics on error |
 | `ReadResource` | Stub (pass-through) |
 | `PlanResourceChange` | Stub (pass-through) |
 | `ApplyResourceChange` | Stub (pass-through) |
@@ -189,7 +241,42 @@ The provider skeleton is complete and end-to-end functional:
 | `UpgradeResourceState` | Stub |
 | `Stop` | Stub |
 
-The next step is to implement the actual BeyondTrust Secret Safe API calls inside `Configure` (to authenticate) and `ReadDataSource` (to retrieve secrets).
+### Implemented Data Sources
+
+| Data Source | Description |
+|---|---|
+| `secretsafe_credential_data` | Retrieves `username` and `password` from a Secret Safe secret by ID. Performs `SignAppin` → `GetSecret` → `Signout` on each read. |
+
+### Example Usage
+
+```hcl
+terraform {
+  required_providers {
+    secretsafe = {
+      source = "beyondtrust/secretsafe"
+    }
+  }
+}
+
+provider "secretsafe" {
+  key     = "your-api-key"
+  runas   = "service-account"
+  baseUrl = "https://your-beyondtrust-instance"
+}
+
+data "secretsafe_credential_data" "db_password" {
+  secret_id = "2e22e1b1-d5c2-4a17-bc90-1234567890ab"
+}
+
+output "db_username" {
+  value = data.secretsafe_credential_data.db_password.username
+}
+
+output "db_password" {
+  value     = data.secretsafe_credential_data.db_password.password
+  sensitive = true
+}
+```
 
 ---
 
@@ -206,7 +293,6 @@ Release checklist:
 5. Publish the GitHub release with all artifacts
 
 ```bash
-# Example for linux_amd64
 zip terraform-provider-secretsafe_1.0.0_linux_amd64.zip terraform-provider-secretsafe
 sha256sum *.zip > terraform-provider-secretsafe_1.0.0_SHA256SUMS
 gpg --detach-sign terraform-provider-secretsafe_1.0.0_SHA256SUMS
@@ -216,10 +302,16 @@ gpg --detach-sign terraform-provider-secretsafe_1.0.0_SHA256SUMS
 
 ## Key Design Decisions
 
-**BouncyCastle for TLS cert generation** — On Linux, `RSA.Create()` returns `RSAOpenSsl`, which calls `dlopen("libssl.so.3")`. Since `libssl` is not present in the stock `hashicorp/terraform` Alpine image, using the .NET stdlib crypto would require users to install OpenSSL. BouncyCastle eliminates this dependency entirely, making the binary self-contained on any OS.
+**Strategy pattern for data sources** — `Terraform5ProviderService` has zero knowledge of individual data sources. Each handler is a self-contained class registered via DI. `GetSchema` and `ReadDataSource` discover handlers at runtime through `IEnumerable<IDataSourceHandler>`, making it trivial to add new data sources without touching the service.
+
+**BouncyCastle for TLS cert generation** — On Linux, `RSA.Create()` uses `RSAOpenSsl` which calls `dlopen("libssl.so.3")`. The `hashicorp/terraform` image does ship OpenSSL (via Alpine's `ssl_client` package), but using BouncyCastle for cert generation keeps that code path free of OpenSSL entirely, which is useful on minimal Alpine environments.
+
+**SmartSerializer** — Terraform sends `DynamicValue` with either `msgpack` or `json` populated depending on context. `SmartSerializer` checks both fields and picks the non-empty one, so handlers never need to worry about which encoding is in use.
 
 **`WebApplication.CreateSlimBuilder`** — Required for AOT compatibility. The full `WebApplication.CreateBuilder` pulls in reflection-heavy components that cannot be trimmed.
 
-**Raw stdout write for handshake** — `Console.WriteLine` goes through a `TextWriter` that may translate `\n` to `\r\n` on Windows. go-plugin's `bufio.Scanner` strips `\n` but leaves `\r`, which would corrupt the base64 cert. Writing directly to `Console.OpenStandardOutput()` bypasses this.
+**Raw stdout write for handshake** — `Console.WriteLine` goes through a `TextWriter` that translates `\n` to `\r\n` on Windows. go-plugin's `bufio.Scanner` strips `\n` but leaves `\r`, corrupting the base64 cert. Writing directly to `Console.OpenStandardOutput()` bypasses this.
 
 **Base64 no-padding** — go-plugin uses `base64.RawStdEncoding`. The `.TrimEnd('=')` call on the cert string is mandatory.
+
+**Terraform Diagnostics instead of exceptions** — `ReadDataSource` catches all handler exceptions and returns them as `Diagnostic` messages with `Summary` and `Detail` fields. This gives Terraform users actionable error messages instead of raw gRPC status codes.
