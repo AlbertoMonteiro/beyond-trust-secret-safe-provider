@@ -21,6 +21,7 @@ builder.AddProject<Projects.BeyondTrust_SecretSafeProvider>("provider")
     .WithHttpsEndpoint(port: 9999, targetPort: 5000, name: "direct")
     .WaitFor(secretsafe)
     .WithReference(secretsafe)
+    .WithEnvironment("SERVICE_PORT", "5000")
     .WithEnvironment("BEYONDTRUST_URL", secretsafe.Resource.GetEndpoint("http"));
 
 builder.Build().Run();

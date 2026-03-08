@@ -10,8 +10,10 @@ builder.Logging.ClearProviders();
 
 var certificate = CertificateGenerator.GenerateSelfSignedCertificate("CN=127.0.0.1", "CN=root ca");
 
+var port = builder.Configuration.GetValue<int?>("SERVICE_PORT") ?? 0;
+
 builder.WebHost.ConfigureKestrel(x =>
-    x.Listen(IPAddress.Loopback, 5000, x => x.UseHttps(x =>
+    x.Listen(IPAddress.Loopback, port, x => x.UseHttps(x =>
     {
         x.ServerCertificate = certificate;
 
