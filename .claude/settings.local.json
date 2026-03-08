@@ -4,7 +4,12 @@
       "Bash(git add BeyondTrust.SecretSafeProvider/CertificateGenerator.cs)",
       "Bash(git commit:*)",
       "Bash(dotnet build BeyondTrust.SecretSafeProvider/BeyondTrust.SecretSafeProvider.csproj)",
-      "Bash(TF_CLI_CONFIG_FILE=dev.tfrc terraform init)"
+      "Bash(TF_CLI_CONFIG_FILE=dev.tfrc terraform init)",
+      "Bash(grep:*)",
+      "Bash(where:*)",
+      "Bash(pdftotext:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet run:*)"
     ]
   }
 }
