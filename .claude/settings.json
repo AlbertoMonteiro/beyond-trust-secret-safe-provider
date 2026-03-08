@@ -16,7 +16,16 @@
       "Bash(docker run --rm bt-provider-test sh -c 'ls -lh /usr/local/bin/terraform-provider-secretsafe 2>/dev/null || find / -name \"\"terraform-provider-secretsafe\"\" -ls 2>/dev/null | head -5')",
       "Bash(docker run --rm --entrypoint sh bt-provider-test -c 'find / -name \"\"terraform-provider-secretsafe\"\" 2>/dev/null | xargs ls -lh 2>/dev/null')",
       "Bash(git add README.md .github/)",
-      "Bash(git add .github/workflows/release.yml)"
+      "Bash(git add .github/workflows/release.yml)",
+      "WebFetch(domain:github.com)",
+      "Bash(dotnet restore BeyondTrust.SecretSafeProvider.Tests/BeyondTrust.SecretSafeProvider.Tests.csproj)",
+      "Bash(dotnet test BeyondTrust.SecretSafeProvider.Tests/BeyondTrust.SecretSafeProvider.Tests.csproj --filter \"Terraform5ProviderServiceTests\")",
+      "Bash(dotnet run --project BeyondTrust.SecretSafeProvider.Tests/BeyondTrust.SecretSafeProvider.Tests.csproj -- --filter \"Terraform5ProviderServiceTests\")",
+      "Bash(dotnet run --project BeyondTrust.SecretSafeProvider.Tests/BeyondTrust.SecretSafeProvider.Tests.csproj -- --treenode-filter \"/*/*/Terraform5ProviderServiceTests/*\")",
+      "WebFetch(domain:themidnightgospel.github.io)",
+      "Bash(dotnet run --project BeyondTrust.SecretSafeProvider.Tests/BeyondTrust.SecretSafeProvider.Tests.csproj -- --treenode-filter \"/*/*/CredentialDataSourceHandlerTests/*\")",
+      "Bash(dotnet run cake.cs --target Coverage)",
+      "Bash(dotnet tool restore)"
     ]
   }
 }

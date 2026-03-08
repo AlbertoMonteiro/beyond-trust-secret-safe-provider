@@ -11,7 +11,7 @@ public interface IBeyondTrustSecretSafe
     public Task<ApiResponse<HttpResponseMessage>> SignAppin([Authorize("PS-Auth")] KeyAndRunAs keyAndRunAs);
 
     [Get($"{V3}/Secrets-Safe/Secrets/{{secretId}}")]
-    public Task<ApiResponse<SecretValue>> GetSecret(Guid secretId);
+    public Task<SecretValue> GetSecret(Guid secretId);
 
     [Get($"{V3}/Secrets-Safe/Secrets/{{secretId}}/file/download")]
     public Task<ApiResponse<HttpResponseMessage>> DownloadSecret(Guid secretId);

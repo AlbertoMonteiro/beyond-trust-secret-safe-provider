@@ -1,4 +1,5 @@
-﻿using MessagePack;
+﻿using BeyondTrust.SecretSafeProvider.Proto;
+using MessagePack;
 
 namespace BeyondTrust.SecretSafeProvider.Models;
 

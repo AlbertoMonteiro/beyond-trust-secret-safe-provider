@@ -1,4 +1,5 @@
 using BeyondTrust.SecretSafeProvider.Models;
+using BeyondTrust.SecretSafeProvider.Proto;
 using BeyondTrust.SecretSafeProvider.Serialization;
 
 namespace BeyondTrust.SecretSafeProvider.Services;
@@ -17,20 +18,37 @@ public class CredentialDataSourceHandler(
 
         var secretSafe = apiFactory.CreateApi();
 
-        await secretSafe.SignAppin(new KeyAndRunAs(configuration.Key, configuration.RunAs));
-        var secretResponse = await secretSafe.GetSecret(Guid.Parse(input.SecretId));
-        await secretSafe.Signout();
-
-        var result = new CredentialData
+        try
         {
-            SecretId = input.SecretId,
-            Username = secretResponse.Content?.Username ?? string.Empty,
-            Password = secretResponse.Content?.Password ?? string.Empty,
-        };
+            await secretSafe.SignAppin(new KeyAndRunAs(configuration.Key, configuration.RunAs));
+            var secretResponse = await secretSafe.GetSecret(Guid.Parse(input.SecretId));
+            await secretSafe.Signout();
 
-        return new ReadDataSource.Types.Response
+            var result = new CredentialData
+            {
+                SecretId = input.SecretId,
+                Username = secretResponse.Username ?? string.Empty,
+                Password = secretResponse.Password ?? string.Empty,
+            };
+
+            return new ReadDataSource.Types.Response
+            {
+                State = SmartSerializer.Serialize(result)
+            };
+        }
+        catch (Exception ex)
         {
-            State = SmartSerializer.Serialize(result)
-        };
+            return new ReadDataSource.Types.Response
+            {
+                Diagnostics =
+                {
+                    new Diagnostic()
+                    {
+                        Detail = ex.Message,
+                        Summary = "Error"
+                    }
+                }
+            };
+        }
     }
 }

@@ -75,3 +75,11 @@ Release artifacts require:
 1. Zip the binary per OS/arch
 2. Generate `SHA256SUMS` file
 3. GPG-sign the `SHA256SUMS` file with a key registered in the Terraform Registry
+
+### Testing
+
+- For testing framework, should use TUnit: https://github.com/thomhurst/TUnit
+- For mock, should use Imposter: https://github.com/themidnightgospel/Imposter
+    - For more Imposter docs check: https://themidnightgospel.github.io/Imposter/latest/methods/throwing/
+- Tests should use trible AAA pattern, Arrange, Act, Assert
+- Test should use the System Under Test pattern, naming the class that is being tested as _sut

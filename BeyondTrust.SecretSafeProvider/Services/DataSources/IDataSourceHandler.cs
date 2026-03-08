@@ -1,3 +1,5 @@
+using BeyondTrust.SecretSafeProvider.Proto;
+
 namespace BeyondTrust.SecretSafeProvider.Services;
 
 public interface IDataSourceHandler

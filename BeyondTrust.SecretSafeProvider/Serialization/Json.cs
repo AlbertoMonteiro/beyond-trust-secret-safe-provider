@@ -1,4 +1,5 @@
 ﻿using BeyondTrust.SecretSafeProvider.Models;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace BeyondTrust.SecretSafeProvider.Services;
@@ -8,6 +9,7 @@ namespace BeyondTrust.SecretSafeProvider.Services;
 [JsonSerializable(typeof(KeyAndRunAs))]
 [JsonSerializable(typeof(SecretValue))]
 [JsonSerializable(typeof(CredentialData))]
+[ExcludeFromCodeCoverage]
 public partial class Json : JsonSerializerContext
 {
 }

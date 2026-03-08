@@ -22,7 +22,7 @@
 syntax = "proto3";
 option go_package = "github.com/hashicorp/terraform/internal/tfplugin5";
 
-option csharp_namespace = "BeyondTrust.SecretSafeProvider";
+option csharp_namespace = "BeyondTrust.SecretSafeProvider.Proto";
 
 package tfplugin5;
 

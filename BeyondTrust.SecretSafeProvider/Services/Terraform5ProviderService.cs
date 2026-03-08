@@ -1,8 +1,7 @@
 using BeyondTrust.SecretSafeProvider.Models;
+using BeyondTrust.SecretSafeProvider.Proto;
 using BeyondTrust.SecretSafeProvider.Serialization;
 using Grpc.Core;
-using MessagePack;
-using System.Text.Json;
 
 namespace BeyondTrust.SecretSafeProvider.Services;
 

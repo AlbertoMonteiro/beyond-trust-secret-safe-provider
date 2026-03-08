@@ -483,3 +483,4 @@ $RECYCLE.BIN/
 
 # Personal
 dist/
+/coverage-report
