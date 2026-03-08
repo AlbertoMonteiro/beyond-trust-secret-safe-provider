@@ -2,7 +2,7 @@ using BeyondTrust.SecretSafeProvider.Models;
 using BeyondTrust.SecretSafeProvider.Proto;
 using BeyondTrust.SecretSafeProvider.Serialization;
 
-namespace BeyondTrust.SecretSafeProvider.Services;
+namespace BeyondTrust.SecretSafeProvider.Services.DataSources;
 
 public class CredentialDataSourceHandler(
     IBeyondTrustApiFactory apiFactory,

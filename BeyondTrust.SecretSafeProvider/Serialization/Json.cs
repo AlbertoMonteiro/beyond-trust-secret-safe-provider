@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace BeyondTrust.SecretSafeProvider.Services;
+namespace BeyondTrust.SecretSafeProvider.Serialization;
 
 [JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true, GenerationMode = JsonSourceGenerationMode.Default)]
 [JsonSerializable(typeof(ProviderConfiguration))]

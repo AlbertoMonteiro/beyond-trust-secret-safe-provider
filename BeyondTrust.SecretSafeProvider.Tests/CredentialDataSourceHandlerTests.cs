@@ -2,6 +2,7 @@ using BeyondTrust.SecretSafeProvider.Models;
 using BeyondTrust.SecretSafeProvider.Proto;
 using BeyondTrust.SecretSafeProvider.Serialization;
 using BeyondTrust.SecretSafeProvider.Services;
+using BeyondTrust.SecretSafeProvider.Services.DataSources;
 using Imposter.Abstractions;
 
 namespace BeyondTrust.SecretSafeProvider.Tests;

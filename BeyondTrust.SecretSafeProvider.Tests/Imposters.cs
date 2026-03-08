@@ -1,4 +1,5 @@
 ﻿using BeyondTrust.SecretSafeProvider.Services;
+using BeyondTrust.SecretSafeProvider.Services.DataSources;
 using Imposter.Abstractions;
 using System;
 using System.Collections.Generic;

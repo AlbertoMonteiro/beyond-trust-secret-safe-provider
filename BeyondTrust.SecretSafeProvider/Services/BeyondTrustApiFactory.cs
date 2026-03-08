@@ -1,4 +1,5 @@
 ﻿using BeyondTrust.SecretSafeProvider.Models;
+using BeyondTrust.SecretSafeProvider.Serialization;
 using Refit;
 
 namespace BeyondTrust.SecretSafeProvider.Services;

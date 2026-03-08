@@ -1,5 +1,4 @@
 ﻿using BeyondTrust.SecretSafeProvider.Proto;
-using BeyondTrust.SecretSafeProvider.Services;
 using Google.Protobuf;
 using MessagePack;
 using System.Text.Json;

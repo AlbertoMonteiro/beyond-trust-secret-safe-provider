@@ -1,8 +1,9 @@
 using BeyondTrust.SecretSafeProvider.Models;
-using BeyondTrust.SecretSafeProvider.Services;
+using BeyondTrust.SecretSafeProvider.Services.DataSources;
 using BeyondTrust.SecretSafeProvider.Tests.Proto;
 using Google.Protobuf;
 using MessagePack;
+using System.Text.Json;
 
 namespace BeyondTrust.SecretSafeProvider.Tests;
 
@@ -57,6 +58,32 @@ public class IntegrationTests(AspireSetup aspire)
             {
                 Json = ByteString.Empty,
                 Msgpack = ByteString.CopyFrom(MessagePackSerializer.Serialize(credential)),
+            }
+        };
+
+        // Act
+        var resp = await _client.ReadDataSourceAsync(request);
+        var responseData = MessagePackSerializer.Deserialize<CredentialData>(resp.State.Msgpack.Memory);
+
+        // Assert
+        await Assert.That(responseData.Username).IsEqualTo("service-account");
+        await Assert.That(responseData.Password).IsEqualTo("SuperSecret123!");
+        await Assert.That(responseData.SecretId).IsEqualTo(credential.SecretId);
+    }
+
+    [Test]
+    public async Task ReadDataSourceUsingJson_WithCredentialDataRequest_ReturnsSecretFromProvider()
+    {
+        // Arrange
+        CredentialData credential = new() { SecretId = Guid.NewGuid().ToString() };
+
+        ReadDataSource.Types.Request request = new()
+        {
+            TypeName = CredentialDataSourceHandler.TYPE_NAME,
+            Config = new()
+            {
+                Json = ByteString.CopyFrom(JsonSerializer.SerializeToUtf8Bytes(credential, BeyondTrust.SecretSafeProvider.Serialization.Json.Default.CredentialData)),
+                Msgpack = ByteString.Empty,
             }
         };
 

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using MessagePack;
 
-namespace BeyondTrust.SecretSafeProvider.Services;
+namespace BeyondTrust.SecretSafeProvider.Serialization;
 
 [GeneratedMessagePackResolver]
 [ExcludeFromCodeCoverage]
