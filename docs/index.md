@@ -11,6 +11,14 @@ The BeyondTrust Secret Safe provider allows you to manage and retrieve secrets f
 - `secretsafe_credential_data` — Retrieve username/password credentials from a secret
 - `secretsafe_download_file_data` — Download file content from a secret as base64
 
+## Provider Configuration
+
+The provider requires the following arguments:
+
+- `runas` - (Required, String) User to authenticate in BeyondTrust Secret Safe
+- `key` - (Required, String, Sensitive) The API key of BeyondTrust Secret Safe
+- `baseUrl` - (Required, String) Base URL of BeyondTrust Secret Safe instance
+
 ## Example Usage
 
 ```hcl
@@ -23,12 +31,14 @@ terraform {
 }
 
 provider "secretsafe" {
-  # Configure your Secret Safe connection
+  runas   = "myuser"
+  key     = var.secret_safe_api_key
+  baseUrl = "https://secretsafe.example.com"
 }
 
 # Retrieve credential data
 data "secretsafe_credential_data" "example" {
-  secret_id = "your-secret-id"
+  secret_id = "12345678-1234-1234-1234-123456789abc"
 }
 
 output "username" {
@@ -42,7 +52,7 @@ output "password" {
 
 # Download file content
 data "secretsafe_download_file_data" "example" {
-  secret_id = "your-file-secret-id"
+  secret_id = "87654321-4321-4321-4321-abcdefgh1234"
 }
 
 output "file_content" {
