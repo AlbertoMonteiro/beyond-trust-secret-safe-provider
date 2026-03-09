@@ -3,22 +3,19 @@
   "Priority": 10,
   "Request": {
     "Path": "/public/v3/Auth/SignAppin",
-    "Methods": [ "POST" ],
-    "Headers": {
-      "Authorization": {
-        "Matchers": [
-          {
-            "Name": "WildcardMatcher",
-            "Pattern": "PS-Auth key=*; runas=*;"
-          }
-        ]
-      }
-    }
+    "Methods": [ "POST" ]
   },
   "Response": {
     "StatusCode": 200,
     "Headers": {
       "Content-Type": "application/json"
+    },
+    "BodyAsJson": {
+      "UserId": 42,
+      "SID": "test-session-id",
+      "EmailAddress": "testuser@example.com",
+      "UserName": "testuser",
+      "Name": "Test User"
     }
   }
 }

@@ -51,9 +51,12 @@ public class FolderResourceHandlerTests
         var imposter = IBeyondTrustSecretSafe.Imposter();
         _beyondTrustApiFactory.CreateApi().Returns(imposter.Instance());
 
+        var signAppinResponse = new SignAppinResponse(UserId: 42, SID: "test-sid", EmailAddress: "test@example.com", UserName: "testuser", Name: "Test User");
+        imposter.SignAppin(new KeyAndRunAs(_configuration.Key, _configuration.RunAs)).ReturnsAsync(signAppinResponse);
+
         var folderResponse = new FolderResponse(folderId, folder.Name, folder.Description, folder.ParentId, folder.UserGroupId);
-        // Create request will be verified through the response
         var createRequest = new FolderRequest(folder.Name, folder.Description, folder.ParentId, folder.UserGroupId);
+        imposter.CreateFolder(createRequest).ReturnsAsync(folderResponse);
 
         // Act
         var result = await _sut.ApplyAsync(applyRequest);
@@ -98,8 +101,12 @@ public class FolderResourceHandlerTests
         var imposter = IBeyondTrustSecretSafe.Imposter();
         _beyondTrustApiFactory.CreateApi().Returns(imposter.Instance());
 
+        var signAppinResponse = new SignAppinResponse(UserId: 42, SID: "test-sid", EmailAddress: "test@example.com", UserName: "testuser", Name: "Test User");
+        imposter.SignAppin(new KeyAndRunAs(_configuration.Key, _configuration.RunAs)).ReturnsAsync(signAppinResponse);
+
         var folderResponse = new FolderResponse(folderId, plannedFolder.Name, plannedFolder.Description, null, 1);
         var updateRequest = new FolderRequest(plannedFolder.Name, plannedFolder.Description, null, 1);
+        imposter.UpdateFolder(folderId, updateRequest).ReturnsAsync(folderResponse);
 
         // Act
         var result = await _sut.ApplyAsync(applyRequest);
