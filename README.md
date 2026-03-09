@@ -11,15 +11,9 @@ A Terraform provider for [BeyondTrust Secret Safe](https://www.beyondtrust.com/s
 - 📁 **Folder Management** - Create, read, and manage folders in Secret Safe
 - ⚡ **Fast & Lightweight** - Optimized for performance and quick startup
 
-## Requirements
+## Quick Start
 
-- **Terraform** >= 0.12
-- **BeyondTrust Secret Safe** instance with API access
-- **Linux/Alpine** for production (Native AOT targets linux-musl-x64)
-
-## Installation
-
-### From Terraform Registry
+### Installation
 
 ```hcl
 terraform {
@@ -32,203 +26,37 @@ terraform {
 }
 ```
 
-### Manual Installation (Development)
-
-See [Development](#development) section below.
-
-## Provider Configuration
-
-The provider requires authentication credentials:
+### Configuration
 
 ```hcl
 provider "secretsafe" {
-  runas    = "terraform-user"              # User to authenticate as
-  key      = var.secret_safe_api_key       # API key (sensitive)
-  baseUrl  = "https://secretsafe.example.com"  # Base URL of Secret Safe instance
-  pwd      = var.secret_safe_password      # Optional: domain password for auth
+  runas    = "terraform-user"
+  key      = var.secret_safe_api_key
+  baseUrl  = "https://secretsafe.example.com"
+  pwd      = var.secret_safe_password  # Optional
 }
 ```
 
-### Configuration Arguments
+See [Provider Configuration](./docs/index.md#provider-configuration) for details.
 
-| Argument  | Type    | Required | Sensitive | Description |
-|-----------|---------|----------|-----------|-------------|
-| `runas`   | String  | Yes      | No        | User account to authenticate in BeyondTrust Secret Safe |
-| `key`     | String  | Yes      | Yes       | API key for BeyondTrust Secret Safe authentication |
-| `baseUrl` | String  | Yes      | No        | Base URL of the BeyondTrust Secret Safe instance |
-| `pwd`     | String  | No       | Yes       | Optional domain password for authentication (if using domain credentials) |
+## Documentation
 
-## Data Sources
+Complete documentation is available in the `/docs` directory:
 
-### `secretsafe_credential_data`
+- **[Overview & Examples](./docs/index.md)** - Provider overview and usage examples
+- **Data Sources:**
+  - [`secretsafe_credential_data`](./docs/data-sources/secretsafe_credential_data.md) - Retrieve credentials
+  - [`secretsafe_download_file_data`](./docs/data-sources/secretsafe_download_file_data.md) - Download file secrets
+- **Resources:**
+  - [`secretsafe_folder`](./docs/resources/secretsafe_folder.md) - Manage folders
+  - [`secretsafe_folder_credential`](./docs/resources/secretsafe_folder_credential.md) - Manage credentials
+  - [`secretsafe_folder_file`](./docs/resources/secretsafe_folder_file.md) - Manage file secrets
 
-Retrieves username and password from a Secret Safe credential secret.
+## Requirements
 
-**Example:**
-
-```hcl
-data "secretsafe_credential_data" "db_creds" {
-  secret_id = "2e22e1b1-d5c2-4a17-bc90-1234567890ab"
-}
-
-output "username" {
-  value = data.secretsafe_credential_data.db_creds.username
-}
-
-output "password" {
-  value     = data.secretsafe_credential_data.db_creds.password
-  sensitive = true
-}
-```
-
-**Arguments:**
-- `secret_id` (Required, String) - UUID of the credential secret in BeyondTrust Secret Safe
-
-**Attributes:**
-- `secret_id` (String) - The secret ID
-- `username` (String) - Username stored in the secret
-- `password` (String, Sensitive) - Password stored in the secret
-
----
-
-### `secretsafe_download_file_data`
-
-Downloads and retrieves file content from a Secret Safe file secret.
-
-**Example:**
-
-```hcl
-data "secretsafe_download_file_data" "certificate" {
-  secret_id = "87654321-4321-4321-4321-abcdefgh1234"
-}
-
-output "file_name" {
-  value = data.secretsafe_download_file_data.certificate.file_name
-}
-
-output "file_content" {
-  value     = base64decode(data.secretsafe_download_file_data.certificate.file_content_base64)
-  sensitive = true
-}
-
-# Write file to disk
-resource "local_file" "certificate" {
-  filename            = "/etc/ssl/certs/${data.secretsafe_download_file_data.certificate.file_name}"
-  content             = base64decode(data.secretsafe_download_file_data.certificate.file_content_base64)
-  file_permission     = "0600"
-  sensitive_content   = true
-}
-```
-
-**Arguments:**
-- `secret_id` (Required, String) - UUID of the file secret in BeyondTrust Secret Safe
-
-**Attributes:**
-- `secret_id` (String) - The secret ID
-- `file_name` (String) - Name of the file stored in the secret
-- `file_content_base64` (String, Sensitive) - File content encoded as base64
-
-## Resources
-
-### `secretsafe_folder`
-
-Manages a folder in BeyondTrust Secret Safe.
-
-**Example:**
-
-```hcl
-resource "secretsafe_folder" "terraform" {
-  name             = "Terraform Managed"
-  description      = "Secrets managed by Terraform"
-  parent_id        = null
-  user_group_id    = 1
-}
-```
-
-**Arguments:**
-- `name` (Required, String) - Name of the folder
-- `description` (Optional, String) - Folder description
-- `parent_id` (Optional, String) - UUID of the parent folder
-- `user_group_id` (Optional, Number) - User group ID for folder access
-
-**Attributes:**
-- `id` (String) - UUID of the created folder
-- `name` (String) - Folder name
-- `description` (String) - Folder description
-- `parent_id` (String) - Parent folder UUID
-- `user_group_id` (Number) - User group ID
-
----
-
-### `secretsafe_folder_credential`
-
-Manages a credential secret in a folder.
-
-**Example:**
-
-```hcl
-resource "secretsafe_folder_credential" "app_db" {
-  folder_id   = secretsafe_folder.terraform.id
-  title       = "Application Database"
-  description = "Credentials for app database"
-  username    = "appuser"
-  password    = var.db_password
-}
-
-output "db_secret_id" {
-  value = secretsafe_folder_credential.app_db.id
-}
-```
-
-**Arguments:**
-- `folder_id` (Required, String) - UUID of the parent folder
-- `title` (Required, String) - Secret title
-- `description` (Optional, String) - Secret description
-- `username` (Required, String) - Username
-- `password` (Required, String, Sensitive) - Password
-
-**Attributes:**
-- `id` (String) - UUID of the created secret
-- `folder_id` (String) - Parent folder UUID
-- `title` (String) - Secret title
-- `description` (String) - Secret description
-- `username` (String) - Username
-- `password` (String, Sensitive) - Password
-- `owner_id` (Number) - ID of the secret owner (auto-populated from authenticated user)
-
----
-
-### `secretsafe_folder_file`
-
-Manages a file secret in a folder.
-
-**Example:**
-
-```hcl
-resource "secretsafe_folder_file" "tls_cert" {
-  folder_id            = secretsafe_folder.terraform.id
-  title                = "TLS Certificate"
-  description          = "Production TLS certificate"
-  file_name            = "cert.pem"
-  file_content_base64  = base64encode(file("${path.module}/cert.pem"))
-}
-```
-
-**Arguments:**
-- `folder_id` (Required, String) - UUID of the parent folder
-- `title` (Required, String) - Secret title
-- `description` (Optional, String) - Secret description
-- `file_name` (Required, String) - Name of the file
-- `file_content_base64` (Required, String, Sensitive) - File content as base64
-
-**Attributes:**
-- `id` (String) - UUID of the created secret
-- `folder_id` (String) - Parent folder UUID
-- `title` (String) - Secret title
-- `description` (String) - Secret description
-- `file_name` (String) - File name
-- `file_content_base64` (String, Sensitive) - File content as base64
-- `owner_id` (Number) - ID of the secret owner (auto-populated from authenticated user)
+- **Terraform** >= 0.12
+- **BeyondTrust Secret Safe** instance with API access
+- **Linux/Alpine** for production (Native AOT targets linux-musl-x64)
 
 ## Development
 
@@ -247,14 +75,13 @@ dotnet restore BeyondTrust.SecretSafeProvider/BeyondTrust.SecretSafeProvider.csp
 # Build (debug)
 dotnet build BeyondTrust.SecretSafeProvider/BeyondTrust.SecretSafeProvider.csproj
 
-# Run locally (debug mode with full WebApplication builder)
+# Run locally
 dotnet run --project BeyondTrust.SecretSafeProvider/BeyondTrust.SecretSafeProvider.csproj
 ```
 
 ### Testing
 
 ```bash
-# Run all tests (required command for .NET 10)
 dotnet run --project BeyondTrust.SecretSafeProvider.Tests/BeyondTrust.SecretSafeProvider.Tests.csproj \
   --disable-logo --fail-fast --no-progress --no-ansi
 ```
@@ -270,8 +97,6 @@ Build a self-contained, trimmed binary for Linux/Alpine:
 dotnet publish -c Release -r linux-musl-x64 -o /app/publish \
   -p:PublishAot=true -p:StaticExecutable=true
 ```
-
-The resulting binary requires no .NET runtime and is suitable for containerized deployment.
 
 ### Project Structure
 
@@ -289,6 +114,7 @@ The resulting binary requires no .NET runtime and is suitable for containerized 
 ├── BeyondTrust.SecretSafeProvider.AppHost/   # Aspire orchestration (tests)
 │   └── __admin/mappings/                     # WireMock API mocks
 ├── BeyondTrust.SecretSafeProvider.Tests/     # Integration & unit tests
+├── docs/                                     # Terraform Registry documentation
 └── CLAUDE.md                                 # Development guidelines
 ```
 
