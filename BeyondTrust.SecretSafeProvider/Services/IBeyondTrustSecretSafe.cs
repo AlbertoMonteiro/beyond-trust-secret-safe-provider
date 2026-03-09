@@ -24,19 +24,19 @@ public interface IBeyondTrustSecretSafe
 
     [Multipart]
     [Post($"{V3}/Secrets-Safe/Folders/{{folderId}}/secrets/file")]
-    public Task<SecretResponse> CreateFileSecret(
+    public Task<SecretFileResponse> CreateFileSecret(
         string folderId,
         [AliasAs("SecretMetadata")] CreateSecretFileRequest metadata,
         [AliasAs("File")] StreamPart file);
 
     [Post($"{V3}/Secrets-Safe/Folders/")]
-    public Task<FolderResponse> CreateFolder([Body] FolderRequest request);
+    public Task<FolderResponse> CreateFolder([Body(BodySerializationMethod.UrlEncoded)] FolderRequest request);
 
     [Get($"{V3}/Secrets-Safe/Folders/{{id}}")]
     public Task<FolderResponse> GetFolder(string id);
 
     [Put($"{V3}/Secrets-Safe/Folders/{{id}}")]
-    public Task<FolderResponse> UpdateFolder(string id, [Body] FolderRequest request);
+    public Task<FolderResponse> UpdateFolder(string id, [Body(BodySerializationMethod.UrlEncoded)] FolderRequest request);
 
     [Delete($"{V3}/Secrets-Safe/Folders/{{id}}")]
     public Task<HttpResponseMessage> DeleteFolder(string id);

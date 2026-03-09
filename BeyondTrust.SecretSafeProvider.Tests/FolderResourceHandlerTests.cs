@@ -38,6 +38,7 @@ public class FolderResourceHandlerTests
         {
             Name = "Test Folder",
             Description = "Test Description",
+            OwnerId = 42,
             ParentId = null,
             UserGroupId = 1
         };
@@ -55,7 +56,12 @@ public class FolderResourceHandlerTests
         imposter.SignAppin(new KeyAndRunAs(_configuration.Key, _configuration.RunAs)).ReturnsAsync(signAppinResponse);
 
         var folderResponse = new FolderResponse(folderId, folder.Name, folder.Description, folder.ParentId, folder.UserGroupId);
-        var createRequest = new FolderRequest(folder.Name, folder.Description, folder.ParentId, folder.UserGroupId);
+        var createRequest = new FolderRequest(
+            OwnerId: folder.OwnerId,
+            Name: folder.Name,
+            Description: folder.Description,
+            ParentId: folder.ParentId,
+            UserGroupId: folder.UserGroupId);
         imposter.CreateFolder(createRequest).ReturnsAsync(folderResponse);
 
         // Act
@@ -81,6 +87,7 @@ public class FolderResourceHandlerTests
         {
             Id = folderId,
             Name = "Old Name",
+            OwnerId = 42,
             UserGroupId = 1
         };
 
@@ -89,6 +96,7 @@ public class FolderResourceHandlerTests
             Id = folderId,
             Name = "New Name",
             Description = "New Description",
+            OwnerId = 42,
             UserGroupId = 1
         };
 
@@ -105,7 +113,12 @@ public class FolderResourceHandlerTests
         imposter.SignAppin(new KeyAndRunAs(_configuration.Key, _configuration.RunAs)).ReturnsAsync(signAppinResponse);
 
         var folderResponse = new FolderResponse(folderId, plannedFolder.Name, plannedFolder.Description, null, 1);
-        var updateRequest = new FolderRequest(plannedFolder.Name, plannedFolder.Description, null, 1);
+        var updateRequest = new FolderRequest(
+            OwnerId: plannedFolder.OwnerId,
+            Name: plannedFolder.Name,
+            Description: plannedFolder.Description,
+            ParentId: null,
+            UserGroupId: 1);
         imposter.UpdateFolder(folderId, updateRequest).ReturnsAsync(folderResponse);
 
         // Act
@@ -129,6 +142,7 @@ public class FolderResourceHandlerTests
         {
             Id = folderId,
             Name = "Test Folder",
+            OwnerId = 42,
             UserGroupId = 1
         };
 
@@ -165,6 +179,7 @@ public class FolderResourceHandlerTests
         var folder = new FolderResourceData
         {
             Name = "Test Folder",
+            OwnerId = 42,
             UserGroupId = 1
         };
 
@@ -177,8 +192,12 @@ public class FolderResourceHandlerTests
         var imposter = IBeyondTrustSecretSafe.Imposter();
         _beyondTrustApiFactory.CreateApi().Returns(imposter.Instance());
 
-        var createRequest = new FolderRequest(folder.Name, null, null, 1);
-
+        var createRequest = new FolderRequest(
+            OwnerId: folder.OwnerId,
+            Name: folder.Name,
+            Description: null,
+            ParentId: null,
+            UserGroupId: 1);
         imposter.CreateFolder(createRequest)
             .Throws(new Exception(exceptionMessage));
 

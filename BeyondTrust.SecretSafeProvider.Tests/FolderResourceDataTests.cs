@@ -15,13 +15,13 @@ public class FolderResourceDataTests
     }
 
     [Test]
-    public async Task GetSchema_ReturnsSchemaWithFiveAttributes()
+    public async Task GetSchema_ReturnsSchemaWithSixAttributes()
     {
         // Act
         var schema = FolderResourceData.GetSchema();
 
         // Assert
-        await Assert.That(schema.Block.Attributes).Count().IsEqualTo(5);
+        await Assert.That(schema.Block.Attributes).Count().IsEqualTo(6);
     }
 
     [Test]

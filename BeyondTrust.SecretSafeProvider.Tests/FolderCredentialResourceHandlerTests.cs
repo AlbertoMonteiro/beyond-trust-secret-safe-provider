@@ -58,7 +58,11 @@ public class FolderCredentialResourceHandlerTests
         var signAppinResponse = new SignAppinResponse(UserId: userId, SID: "test-sid", EmailAddress: "test@example.com", UserName: "testuser", Name: "Test User");
         imposter.SignAppin(new KeyAndRunAs(_configuration.Key, _configuration.RunAs)).ReturnsAsync(signAppinResponse);
 
-        var secretResponse = new SecretResponse(secretId, credential.Title, credential.Description, userId);
+        var secretResponse = new SecretResponse(
+            Id: secretId,
+            Title: credential.Title,
+            Description: credential.Description,
+            OwnerId: userId);
         var createRequest = new CreateSecretCredentialRequest(
             credential.Title,
             credential.Description,
@@ -124,7 +128,11 @@ public class FolderCredentialResourceHandlerTests
         var signAppinResponse = new SignAppinResponse(UserId: userId, SID: "test-sid", EmailAddress: "test@example.com", UserName: "testuser", Name: "Test User");
         imposter.SignAppin(new KeyAndRunAs(_configuration.Key, _configuration.RunAs)).ReturnsAsync(signAppinResponse);
 
-        var secretResponse = new SecretResponse(secretId, plannedCredential.Title, plannedCredential.Description, userId);
+        var secretResponse = new SecretResponse(
+            Id: secretId,
+            Title: plannedCredential.Title,
+            Description: plannedCredential.Description,
+            OwnerId: userId);
         var updateRequest = new CreateSecretCredentialRequest(
             plannedCredential.Title,
             plannedCredential.Description,
@@ -176,7 +184,10 @@ public class FolderCredentialResourceHandlerTests
         var signAppinResponse = new SignAppinResponse(UserId: userId, SID: "test-sid", EmailAddress: "test@example.com", UserName: "testuser", Name: "Test User");
         imposter.SignAppin(new KeyAndRunAs(_configuration.Key, _configuration.RunAs)).ReturnsAsync(signAppinResponse);
 
-        var secretValue = new SecretValue(credential.Password, credential.Username);
+        var secretValue = new SecretValue(
+            Id: secretId,
+            Username: credential.Username,
+            Password: credential.Password);
         imposter.GetSecret(Guid.Parse(secretId)).ReturnsAsync(secretValue);
 
         // Act

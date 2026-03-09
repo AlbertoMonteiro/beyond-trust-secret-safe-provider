@@ -50,7 +50,9 @@ public class CredentialDataSourceHandlerTests
 
         var keyAndRunAs = new KeyAndRunAs(_configuration.Key, _configuration.RunAs);
 
-        SecretValue resp = new(credential.Password, credential.Username);
+        SecretValue resp = new(
+            Username: credential.Username,
+            Password: credential.Password);
 
         imposter.GetSecret(secretId).ReturnsAsync(resp);
 
@@ -125,7 +127,9 @@ public class CredentialDataSourceHandlerTests
 
         var imposter = IBeyondTrustSecretSafe.Imposter();
         _beyondTrustApiFactory.CreateApi().Returns(imposter.Instance());
-        imposter.GetSecret(secretId).ReturnsAsync(new SecretValue("password", "username"));
+        imposter.GetSecret(secretId).ReturnsAsync(new SecretValue(
+            Username: "username",
+            Password: "password"));
         imposter.Signout().Throws(new Exception(exceptionMessage));
 
         // Act

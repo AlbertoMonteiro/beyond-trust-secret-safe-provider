@@ -42,14 +42,23 @@ public class FolderCredentialResourceHandler(
 
             var result = new FolderCredentialData
             {
-                Id = resourceData.Id,
-                FolderId = resourceData.FolderId,
-                Title = secretResponse.Username ?? string.Empty,
+                Id = secretResponse.Id,
+                FolderId = secretResponse.FolderId ?? resourceData.FolderId,
+                Title = secretResponse.Title ?? string.Empty,
                 Username = secretResponse.Username ?? string.Empty,
                 Password = secretResponse.Password ?? string.Empty,
-                OwnerId = resourceData.OwnerId,
-                Description = resourceData.Description,
-                Owners = resourceData.Owners
+                OwnerId = secretResponse.OwnerId,
+                Description = secretResponse.Description,
+                Owners = secretResponse.Owners,
+                CreatedOn = secretResponse.CreatedOn,
+                CreatedBy = secretResponse.CreatedBy,
+                ModifiedOn = secretResponse.ModifiedOn,
+                ModifiedBy = secretResponse.ModifiedBy,
+                Owner = secretResponse.Owner,
+                Folder = secretResponse.Folder,
+                FolderPath = secretResponse.FolderPath,
+                OwnerType = secretResponse.OwnerType,
+                Notes = secretResponse.Notes
             };
 
             return new ReadResource.Types.Response
@@ -86,7 +95,7 @@ public class FolderCredentialResourceHandler(
             var signAppinResponse = await secretSafe.SignAppin(new KeyAndRunAs(configuration.Key, configuration.RunAs, configuration.Pwd));
             var ownerId = signAppinResponse.UserId;
 
-            string resourceId;
+            SecretResponse? secretResponse = null;
 
             // Create if no prior state
             if (string.IsNullOrEmpty(resourceData?.Id))
@@ -99,8 +108,7 @@ public class FolderCredentialResourceHandler(
                     OwnerId: ownerId,
                     Owners: null);
 
-                var secretResponse = await secretSafe.CreateCredentialSecret(plannedState.FolderId, request_body);
-                resourceId = secretResponse.Id;
+                secretResponse = await secretSafe.CreateCredentialSecret(plannedState.FolderId, request_body);
             }
             else
             {
@@ -113,22 +121,30 @@ public class FolderCredentialResourceHandler(
                     OwnerId: ownerId,
                     Owners: null);
 
-                var secretResponse = await secretSafe.UpdateCredentialSecret(resourceData.Id, request_body);
-                resourceId = secretResponse.Id;
+                secretResponse = await secretSafe.UpdateCredentialSecret(resourceData.Id, request_body);
             }
 
             await secretSafe.Signout();
 
             var result = new FolderCredentialData
             {
-                Id = resourceId,
-                FolderId = plannedState.FolderId,
-                Title = plannedState.Title,
-                Description = plannedState.Description,
-                Username = plannedState.Username,
+                Id = secretResponse.Id,
+                FolderId = secretResponse.FolderId ?? plannedState.FolderId,
+                Title = secretResponse.Title ?? plannedState.Title,
+                Description = secretResponse.Description ?? plannedState.Description,
+                Username = secretResponse.Username ?? plannedState.Username,
                 Password = plannedState.Password,
-                OwnerId = ownerId,
-                Owners = null
+                OwnerId = secretResponse.OwnerId,
+                Owners = secretResponse.Owners,
+                CreatedOn = secretResponse.CreatedOn,
+                CreatedBy = secretResponse.CreatedBy,
+                ModifiedOn = secretResponse.ModifiedOn,
+                ModifiedBy = secretResponse.ModifiedBy,
+                Owner = secretResponse.Owner,
+                Folder = secretResponse.Folder,
+                FolderPath = secretResponse.FolderPath,
+                OwnerType = secretResponse.OwnerType,
+                Notes = secretResponse.Notes
             };
 
             return new ApplyResourceChange.Types.Response

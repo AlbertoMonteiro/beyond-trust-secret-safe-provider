@@ -45,6 +45,7 @@ public class FolderResourceHandler(
                 Id = folderResponse.Id,
                 Name = folderResponse.Name,
                 Description = folderResponse.Description,
+                OwnerId = resourceData.OwnerId,
                 ParentId = folderResponse.ParentId,
                 UserGroupId = folderResponse.UserGroupId
             };
@@ -78,6 +79,22 @@ public class FolderResourceHandler(
             var plannedState = SmartSerializer.Deserialize<FolderResourceData>(request.PlannedState);
             var resourceData = SmartSerializer.Deserialize<FolderResourceData>(request.PriorState);
 
+            if (plannedState == null)
+            {
+                return new ApplyResourceChange.Types.Response
+                {
+                    Diagnostics =
+                    {
+                        new Diagnostic()
+                        {
+                            Severity = Diagnostic.Types.Severity.Error,
+                            Summary = "Invalid State",
+                            Detail = "Planned state is missing"
+                        }
+                    }
+                };
+            }
+
             var secretSafe = apiFactory.CreateApi();
 
             await secretSafe.SignAppin(new KeyAndRunAs(configuration.Key, configuration.RunAs, configuration.Pwd));
@@ -88,6 +105,7 @@ public class FolderResourceHandler(
             if (string.IsNullOrEmpty(resourceData?.Id))
             {
                 var folderRequest = new FolderRequest(
+                    OwnerId: plannedState.OwnerId,
                     Name: plannedState.Name,
                     Description: plannedState.Description,
                     ParentId: plannedState.ParentId,
@@ -99,6 +117,7 @@ public class FolderResourceHandler(
             {
                 // Update if prior state exists
                 var folderRequest = new FolderRequest(
+                    OwnerId: plannedState.OwnerId,
                     Name: plannedState.Name,
                     Description: plannedState.Description,
                     ParentId: plannedState.ParentId,
@@ -145,6 +164,7 @@ public class FolderResourceHandler(
                 Id = folderResponse.Id,
                 Name = folderResponse.Name,
                 Description = folderResponse.Description,
+                OwnerId = plannedState.OwnerId,
                 ParentId = folderResponse.ParentId,
                 UserGroupId = folderResponse.UserGroupId
             };

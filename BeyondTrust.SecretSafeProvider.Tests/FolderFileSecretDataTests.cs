@@ -15,13 +15,13 @@ public class FolderFileSecretDataTests
     }
 
     [Test]
-    public async Task GetSchema_ReturnsSchemaWithEightAttributes()
+    public async Task GetSchema_ReturnsSchemaWithEighteenAttributes()
     {
         // Act
         var schema = FolderFileSecretData.GetSchema();
 
         // Assert
-        await Assert.That(schema.Block.Attributes).Count().IsEqualTo(8);
+        await Assert.That(schema.Block.Attributes).Count().IsEqualTo(18);
     }
 
     [Test]

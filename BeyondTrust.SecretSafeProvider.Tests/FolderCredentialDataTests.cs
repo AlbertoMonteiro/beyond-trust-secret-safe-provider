@@ -15,13 +15,13 @@ public class FolderCredentialDataTests
     }
 
     [Test]
-    public async Task GetSchema_ReturnsSchemaWithEightAttributes()
+    public async Task GetSchema_ReturnsSchemaWithSeventeenAttributes()
     {
         // Act
         var schema = FolderCredentialData.GetSchema();
 
         // Assert
-        await Assert.That(schema.Block.Attributes).Count().IsEqualTo(8);
+        await Assert.That(schema.Block.Attributes).Count().IsEqualTo(17);
     }
 
     [Test]

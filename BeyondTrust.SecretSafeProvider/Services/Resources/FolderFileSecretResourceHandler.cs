@@ -50,7 +50,17 @@ public class FolderFileSecretResourceHandler(
                 FileName = resourceData.FileName,
                 FileContentBase64 = resourceData.FileContentBase64,
                 OwnerId = resourceData.OwnerId,
-                Owners = resourceData.Owners
+                Owners = resourceData.Owners,
+                FileHash = resourceData.FileHash,
+                CreatedOn = resourceData.CreatedOn,
+                CreatedBy = resourceData.CreatedBy,
+                ModifiedOn = resourceData.ModifiedOn,
+                ModifiedBy = resourceData.ModifiedBy,
+                Owner = resourceData.Owner,
+                Folder = resourceData.Folder,
+                FolderPath = resourceData.FolderPath,
+                OwnerType = resourceData.OwnerType,
+                Notes = resourceData.Notes
             };
 
             return new ReadResource.Types.Response
@@ -87,7 +97,7 @@ public class FolderFileSecretResourceHandler(
             var signAppinResponse = await secretSafe.SignAppin(new KeyAndRunAs(configuration.Key, configuration.RunAs, configuration.Pwd));
             var ownerId = signAppinResponse.UserId;
 
-            string resourceId;
+            SecretFileResponse? secretResponse = null;
 
             // Create if no prior state
             if (string.IsNullOrEmpty(resourceData?.Id))
@@ -106,8 +116,7 @@ public class FolderFileSecretResourceHandler(
                 using var stream = new MemoryStream(fileBytes);
                 var filePart = new StreamPart(stream, plannedState.FileName, "application/octet-stream");
 
-                var secretResponse = await secretSafe.CreateFileSecret(plannedState.FolderId, metadata, filePart);
-                resourceId = secretResponse.Id;
+                secretResponse = await secretSafe.CreateFileSecret(plannedState.FolderId, metadata, filePart);
             }
             else
             {
@@ -126,22 +135,31 @@ public class FolderFileSecretResourceHandler(
                 using var stream = new MemoryStream(fileBytes);
                 var filePart = new StreamPart(stream, plannedState.FileName, "application/octet-stream");
 
-                var secretResponse = await secretSafe.CreateFileSecret(plannedState.FolderId, metadata, filePart);
-                resourceId = secretResponse.Id;
+                secretResponse = await secretSafe.CreateFileSecret(plannedState.FolderId, metadata, filePart);
             }
 
             await secretSafe.Signout();
 
             var result = new FolderFileSecretData
             {
-                Id = resourceId,
-                FolderId = plannedState.FolderId,
-                Title = plannedState.Title,
-                Description = plannedState.Description,
-                FileName = plannedState.FileName,
+                Id = secretResponse.Id,
+                FolderId = secretResponse.FolderId ?? plannedState.FolderId,
+                Title = secretResponse.Title ?? plannedState.Title,
+                Description = secretResponse.Description ?? plannedState.Description,
+                FileName = secretResponse.FileName ?? plannedState.FileName,
                 FileContentBase64 = plannedState.FileContentBase64,
-                OwnerId = ownerId,
-                Owners = null
+                OwnerId = secretResponse.OwnerId,
+                Owners = secretResponse.Owners,
+                FileHash = secretResponse.FileHash,
+                CreatedOn = secretResponse.CreatedOn,
+                CreatedBy = secretResponse.CreatedBy,
+                ModifiedOn = secretResponse.ModifiedOn,
+                ModifiedBy = secretResponse.ModifiedBy,
+                Owner = secretResponse.Owner,
+                Folder = secretResponse.Folder,
+                FolderPath = secretResponse.FolderPath,
+                OwnerType = secretResponse.OwnerType,
+                Notes = secretResponse.Notes
             };
 
             return new ApplyResourceChange.Types.Response

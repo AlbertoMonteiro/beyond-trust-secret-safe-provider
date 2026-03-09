@@ -1,11 +1,10 @@
-﻿namespace BeyondTrust.SecretSafeProvider.Models;
+namespace BeyondTrust.SecretSafeProvider.Models;
 
-public record SecretValue(
+public record SecretFileResponse(
     string? Id = null,
     string? Title = null,
     string? Description = null,
     string? Username = null,
-    string? Password = null,
     long OwnerId = default,
     string? FolderId = null,
     DateTime CreatedOn = default,
@@ -17,5 +16,8 @@ public record SecretValue(
     string? FolderPath = null,
     List<OwnerInfo>? Owners = null,
     string? OwnerType = null,
-    string? Notes = null);
-
+    string? Notes = null,
+    string? FileName = null,
+    string? FileHash = null) : SecretResponse(
+    Id, Title, Description, Username, OwnerId, FolderId,
+    CreatedOn, CreatedBy, ModifiedOn, ModifiedBy, Owner, Folder, FolderPath, Owners, OwnerType, Notes);

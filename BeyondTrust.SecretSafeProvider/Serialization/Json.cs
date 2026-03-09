@@ -14,6 +14,7 @@ namespace BeyondTrust.SecretSafeProvider.Serialization;
 [JsonSerializable(typeof(CreateSecretCredentialRequest))]
 [JsonSerializable(typeof(OwnerInfo))]
 [JsonSerializable(typeof(SecretResponse))]
+[JsonSerializable(typeof(SecretFileResponse))]
 [JsonSerializable(typeof(FolderCredentialData))]
 [JsonSerializable(typeof(CreateSecretFileRequest))]
 [JsonSerializable(typeof(FolderFileSecretData))]

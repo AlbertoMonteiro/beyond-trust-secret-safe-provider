@@ -103,7 +103,9 @@ public class FolderFileSecretResourceHandlerTests
         var signAppinResponse = new SignAppinResponse(UserId: userId, SID: "test-sid", EmailAddress: "test@example.com", UserName: "testuser", Name: "Test User");
         imposter.SignAppin(new KeyAndRunAs(_configuration.Key, _configuration.RunAs)).ReturnsAsync(signAppinResponse);
 
-        var secretValue = new SecretValue("", "");
+        var secretValue = new SecretValue(
+            Username: "",
+            Password: "");
         imposter.GetSecret(Guid.Parse(secretId)).ReturnsAsync(secretValue);
 
         // Act
