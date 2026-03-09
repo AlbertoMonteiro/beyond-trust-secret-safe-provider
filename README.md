@@ -172,7 +172,7 @@ Contributions are welcome! Please:
 
 ## License
 
-Mozilla Public License 2.0 — see [LICENSE](./LICENSE) for details.
+MIT — see [LICENSE](./LICENSE.txt) for details.
 
 ## Support
 
