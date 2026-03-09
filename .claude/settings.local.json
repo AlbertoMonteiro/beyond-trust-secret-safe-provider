@@ -9,7 +9,8 @@
       "Bash(where:*)",
       "Bash(pdftotext:*)",
       "Bash(dotnet test:*)",
-      "Bash(dotnet run:*)"
+      "Bash(dotnet run:*)",
+      "Bash(gh run:*)"
     ]
   }
 }
