@@ -78,6 +78,11 @@ Release artifacts require:
 
 ### Testing
 
+- **IMPORTANT: ALL test executions MUST use the following command:**
+  ```bash
+  dotnet run --project BeyondTrust.SecretSafeProvider.Tests/BeyondTrust.SecretSafeProvider.Tests.csproj --disable-logo --fail-fast --no-progress --no-ansi
+  ```
+  Do NOT use `dotnet test` — it is not supported by Microsoft.Testing.Platform on .NET 10 SDK.
 - For testing framework, should use TUnit: https://github.com/thomhurst/TUnit
 - For mock, should use Imposter: https://github.com/themidnightgospel/Imposter
     - For more Imposter docs check: https://themidnightgospel.github.io/Imposter/latest/methods/throwing/

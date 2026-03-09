@@ -1,4 +1,8 @@
+using Microsoft.Extensions.Configuration;
+
 var builder = DistributedApplication.CreateBuilder(args);
+
+var isTestMode = builder.Configuration.GetValue<bool>("testmode");
 
 var repoRoot = Path.GetFullPath(Path.Combine(builder.AppHostDirectory, ".."));
 var mappingsPath = Path.Combine(builder.AppHostDirectory, "__admin", "mappings");
@@ -9,7 +13,7 @@ var secretsafe = builder
     .WithMappingsPath(mappingsPath)
     .WithWatchStaticMappings()
     .WithOpenTelemetry()
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(isTestMode ? ContainerLifetime.Session : ContainerLifetime.Persistent);
 
 //builder.AddDockerfile("bt-provider-test", repoRoot, Path.Combine(repoRoot, "Dockerfile.test"))
 //    .WithImageTag("latest")

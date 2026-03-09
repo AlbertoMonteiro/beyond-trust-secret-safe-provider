@@ -1,5 +1,3 @@
-using Aspire.Hosting;
-using Aspire.Hosting.Testing;
 using BeyondTrust.SecretSafeProvider.Tests.Proto;
 using Grpc.Net.Client;
 using System.Net;
@@ -11,17 +9,13 @@ namespace BeyondTrust.SecretSafeProvider.Tests;
 public class AspireSetup : IAsyncInitializer, IAsyncDisposable
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
-    public DistributedApplication App { get; private set; }
+    public ProjectAppHost App { get; private set; }
     public HttpClient GrpcHttpClient {get;private set;}
     public Provider.ProviderClient Client {get;private set;}
 
     public async Task InitializeAsync()
     {
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.BeyondTrust_SecretSafeProvider>();
-
-        App = await appHost.BuildAsync()
-            .WaitAsync(DefaultTimeout);
+        App = new ProjectAppHost();
 
         await App.StartAsync()
             .WaitAsync(DefaultTimeout);

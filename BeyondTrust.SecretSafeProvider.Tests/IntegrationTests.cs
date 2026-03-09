@@ -63,9 +63,12 @@ public class IntegrationTests(AspireSetup aspire)
 
         // Act
         var resp = await _client.ReadDataSourceAsync(request);
-        var responseData = MessagePackSerializer.Deserialize<CredentialData>(resp.State.Msgpack.Memory);
 
         // Assert
+        await Assert.That(resp.Diagnostics).IsEmpty();
+        await Assert.That(resp.State).IsNotNull();
+
+        var responseData = MessagePackSerializer.Deserialize<CredentialData>(resp.State.Msgpack.Memory);
         await Assert.That(responseData.Username).IsEqualTo("service-account");
         await Assert.That(responseData.Password).IsEqualTo("SuperSecret123!");
         await Assert.That(responseData.SecretId).IsEqualTo(credential.SecretId);
@@ -89,9 +92,12 @@ public class IntegrationTests(AspireSetup aspire)
 
         // Act
         var resp = await _client.ReadDataSourceAsync(request);
-        var responseData = MessagePackSerializer.Deserialize<CredentialData>(resp.State.Msgpack.Memory);
 
         // Assert
+        await Assert.That(resp.Diagnostics).IsEmpty();
+        await Assert.That(resp.State).IsNotNull();
+
+        var responseData = MessagePackSerializer.Deserialize<CredentialData>(resp.State.Msgpack.Memory);
         await Assert.That(responseData.Username).IsEqualTo("service-account");
         await Assert.That(responseData.Password).IsEqualTo("SuperSecret123!");
         await Assert.That(responseData.SecretId).IsEqualTo(credential.SecretId);
@@ -140,9 +146,12 @@ public class IntegrationTests(AspireSetup aspire)
 
         // Act
         var resp = await _client.ReadDataSourceAsync(request);
-        var responseData = MessagePackSerializer.Deserialize<FileDownloadData>(resp.State.Msgpack.Memory);
 
         // Assert
+        await Assert.That(resp.Diagnostics).IsEmpty();
+        await Assert.That(resp.State).IsNotNull();
+
+        var responseData = MessagePackSerializer.Deserialize<FileDownloadData>(resp.State.Msgpack.Memory);
         var expectedContent = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("secret-file-content-from-wiremock"));
         await Assert.That(responseData.FileContentBase64).IsEqualTo(expectedContent);
         await Assert.That(responseData.FileName).IsEqualTo("secret.txt");
@@ -167,9 +176,12 @@ public class IntegrationTests(AspireSetup aspire)
 
         // Act
         var resp = await _client.ReadDataSourceAsync(request);
-        var responseData = MessagePackSerializer.Deserialize<FileDownloadData>(resp.State.Msgpack.Memory);
 
         // Assert
+        await Assert.That(resp.Diagnostics).IsEmpty();
+        await Assert.That(resp.State).IsNotNull();
+
+        var responseData = MessagePackSerializer.Deserialize<FileDownloadData>(resp.State.Msgpack.Memory);
         var expectedContent = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("secret-file-content-from-wiremock"));
         await Assert.That(responseData.FileContentBase64).IsEqualTo(expectedContent);
         await Assert.That(responseData.FileName).IsEqualTo("secret.txt");

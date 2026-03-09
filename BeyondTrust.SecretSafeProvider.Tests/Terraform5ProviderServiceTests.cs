@@ -148,17 +148,21 @@ public class Terraform5ProviderServiceTests
     }
 
     [Test]
-    public async Task ReadResource_ReturnsCurrentStateAsNewState()
+    public async Task ReadResource_WithoutResourceHandlers_ReturnsDiagnosticError()
     {
         // Arrange
         var state = new DynamicValue { Msgpack = Google.Protobuf.ByteString.CopyFromUtf8("state-bytes") };
-        var request = new ReadResource.Types.Request { CurrentState = state };
+        var request = new ReadResource.Types.Request {
+            CurrentState = state,
+            TypeName = "unknown_resource"
+        };
 
         // Act
         var result = await _sut.ReadResource(request, null!);
 
         // Assert
-        await Assert.That(result.NewState).IsEqualTo(state);
+        await Assert.That(result.Diagnostics).Count().IsGreaterThan(0);
+        await Assert.That(result.Diagnostics[0].Severity).IsEqualTo(Diagnostic.Types.Severity.Error);
     }
 
     [Test]
@@ -176,17 +180,18 @@ public class Terraform5ProviderServiceTests
     }
 
     [Test]
-    public async Task ApplyResourceChange_ReturnsPlannedStateAsNewState()
+    public async Task ApplyResourceChange_WithoutResourceHandlers_ReturnsDiagnosticError()
     {
         // Arrange
         var planned = new DynamicValue { Msgpack = Google.Protobuf.ByteString.CopyFromUtf8("planned-bytes") };
-        var request = new ApplyResourceChange.Types.Request { PlannedState = planned };
+        var request = new ApplyResourceChange.Types.Request { PlannedState = planned, TypeName = "unknown_resource" };
 
         // Act
         var result = await _sut.ApplyResourceChange(request, null!);
 
         // Assert
-        await Assert.That(result.NewState).IsEqualTo(planned);
+        await Assert.That(result.Diagnostics).Count().IsGreaterThan(0);
+        await Assert.That(result.Diagnostics[0].Severity).IsEqualTo(Diagnostic.Types.Severity.Error);
     }
 
     // Empty-response methods
