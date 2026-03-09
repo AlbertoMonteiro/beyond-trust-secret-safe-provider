@@ -256,7 +256,7 @@ Base: `/public/v3`
 
 ---
 
-### ⬜ 8. `secretsafe_folder` — NOVO RESOURCE (CRUD) — PENDENTE
+### ✅ 8. `secretsafe_folder` — NOVO RESOURCE (CRUD) — COMPLETO
 
 **APIs utilizadas:**
 - Create: `POST /Secrets-Safe/Folders/`
@@ -342,7 +342,7 @@ Base: `/public/v3`
 
 ---
 
-### ✅ 10. `secretsafe_folder_credential` — NOVO RESOURCE (CREATE/UPDATE) — PENDENTE
+### ✅ 10. `secretsafe_folder_credential` — NOVO RESOURCE (CREATE/UPDATE) — COMPLETO
 
 **API:** `POST /Secrets-Safe/Folders/{folderId}/secrets`
 
@@ -396,7 +396,7 @@ Base: `/public/v3`
 
 ---
 
-### ✅ 11. `secretsafe_folder_file` — NOVO RESOURCE (CREATE) — PENDENTE
+### ✅ 11. `secretsafe_folder_file` — NOVO RESOURCE (CREATE) — COMPLETO
 
 **API:** `POST /Secrets-Safe/Folders/{folderId}/secrets/file` (multipart/form-data)
 
@@ -461,7 +461,7 @@ Base: `/public/v3`
 | 5 | ⬜ | `secretsafe_secrets_list_data` | (data source) | Listagem/descoberta de segredos |
 | 6 | ⬜ | `secretsafe_folder_data` | (data source) | Informações de pasta (leitura) |
 | 7 | ⬜ | `secretsafe_folders_list_data` | (data source) | Listar pastas com filtros |
-| 8 | ⬜ | `secretsafe_folder` | (resource CRUD) | Gerenciar pastas (criar, atualizar, deletar) |
+| 8 | ✅ | `secretsafe_folder` | (resource CRUD) | Gerenciar pastas (criar, atualizar, deletar) |
 | 9 | ⬜ | `secretsafe_folder_secrets_list_data` | (data source) | Listar secrets dentro de uma pasta |
 | 10 | ✅ | `secretsafe_folder_credential` | (resource) | Já implementado |
 | 11 | ✅ | `secretsafe_folder_file` | (resource) | Já implementado |
