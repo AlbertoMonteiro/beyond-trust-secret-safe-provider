@@ -7,6 +7,7 @@ Upload and manage encrypted file secrets within BeyondTrust Secret Safe folders.
 ```hcl
 resource "secretsafe_folder" "secure_files" {
   name          = "Encrypted Files"
+  owner_id      = 42
   user_group_id = 1
 }
 
@@ -42,7 +43,16 @@ output "file_secret_id" {
 - `description` - (String) The secret description
 - `file_name` - (String) The file name
 - `file_content_base64` - (String, Sensitive) The file content as base64
-- `owner_id` - (Number) ID of the secret owner (auto-populated from authenticated user)
+- `owner_id` - (Number, Computed) ID of the secret owner (auto-populated from authenticated user)
+- `file_hash` - (String, Computed) SHA-256 hash of the file content
+- `created_on` - (String, Computed) Timestamp when the file secret was created (RFC3339 format)
+- `created_by` - (String, Computed) User who created the file secret
+- `modified_on` - (String, Computed) Timestamp when the file secret was last modified (RFC3339 format)
+- `modified_by` - (String, Computed) User who last modified the file secret
+- `owner` - (String, Computed) Name of the secret owner
+- `folder_path` - (String, Computed) Full path to the parent folder
+- `owner_type` - (String, Computed) Type of owner (e.g., "User", "Group")
+- `notes` - (String, Computed) Additional notes about the file secret
 
 ## Sensitive Attributes
 
@@ -113,14 +123,6 @@ resource "secretsafe_folder_file" "ssl_from_var" {
   file_name           = "dynamic.crt"
   file_content_base64 = filebase64(var.ssl_cert_path)
 }
-```
-
-## Import
-
-File secrets can be imported using the secret ID:
-
-```bash
-terraform import secretsafe_folder_file.ssl_cert secret-id-here
 ```
 
 ## Technical Details

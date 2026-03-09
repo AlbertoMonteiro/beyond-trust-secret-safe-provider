@@ -7,6 +7,7 @@ Create and manage username/password credentials within BeyondTrust Secret Safe f
 ```hcl
 resource "secretsafe_folder" "credentials" {
   name          = "Database Credentials"
+  owner_id      = 42
   user_group_id = 1
 }
 
@@ -46,7 +47,15 @@ output "credential_username" {
 - `description` - (String) The secret description
 - `username` - (String) The username
 - `password` - (String, Sensitive) The password
-- `owner_id` - (Number) ID of the secret owner (auto-populated from authenticated user)
+- `owner_id` - (Number, Computed) ID of the secret owner (auto-populated from authenticated user)
+- `created_on` - (String, Computed) Timestamp when the credential was created (RFC3339 format)
+- `created_by` - (String, Computed) User who created the credential
+- `modified_on` - (String, Computed) Timestamp when the credential was last modified (RFC3339 format)
+- `modified_by` - (String, Computed) User who last modified the credential
+- `owner` - (String, Computed) Name of the secret owner
+- `folder_path` - (String, Computed) Full path to the parent folder
+- `owner_type` - (String, Computed) Type of owner (e.g., "User", "Group")
+- `notes` - (String, Computed) Additional notes about the credential
 
 ## Sensitive Attributes
 
@@ -62,14 +71,6 @@ resource "secretsafe_folder_credential" "shared_credential" {
   username    = "ci_service_account"
   password    = var.shared_password
 }
-```
-
-## Import
-
-Credentials can be imported using the credential ID:
-
-```bash
-terraform import secretsafe_folder_credential.db_admin credential-id-here
 ```
 
 ## Notes

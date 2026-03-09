@@ -33,3 +33,15 @@ resource "aws_db_instance" "example" {
 - `secret_id` - (String) The secret ID
 - `username` - (String) The username from the credential secret
 - `password` - (String, Sensitive) The password from the credential secret
+- `title` - (String) The title of the credential
+- `description` - (String) The description of the credential
+- `folder_id` - (String) The ID of the parent folder
+- `owner_id` - (Number) ID of the secret owner
+- `created_on` - (String) Timestamp when the credential was created (RFC3339 format)
+- `created_by` - (String) User who created the credential
+- `modified_on` - (String) Timestamp when the credential was last modified (RFC3339 format)
+- `modified_by` - (String) User who last modified the credential
+- `owner` - (String) Name of the secret owner
+- `folder_path` - (String) Full path to the parent folder
+- `owner_type` - (String) Type of owner (e.g., "User", "Group")
+- `notes` - (String) Additional notes about the credential

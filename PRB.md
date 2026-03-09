@@ -590,3 +590,36 @@ Base: `/public/v3`
 
 - **Referência completa:** `bi-ps-api-24-1.pdf` (BeyondInsight and Password Safe 24.1 API Guide)
 - **Seção relevante:** "Secrets Safe APIs" (páginas 430-457)
+
+---
+
+## Funcionalidades Não Implementadas
+
+### ⬜ Import de Resources
+
+**Status:** Pendente
+
+**Descrição:** O Terraform permite importar recursos existentes via `terraform import`. Esta funcionalidade permitiria aos usuários importar pastas, credenciais e arquivos existentes no BeyondTrust Secret Safe para o estado Terraform.
+
+**Requisitos para implementação:**
+
+1. Implementar método `ImportResourceState` em todos os resource handlers:
+   - `FolderResourceHandler.cs`
+   - `FolderCredentialResourceHandler.cs`
+   - `FolderFileSecretResourceHandler.cs`
+
+2. O método deve:
+   - Receber um `ImportResourceState.Types.Request` com `TypeName` e `ID`
+   - Chamar a API para recuperar os dados completos do recurso
+   - Retornar um `ImportResourceState.Types.Response` com o estado serializado
+
+3. Atualizar a documentação em `docs/` para incluir exemplos de import:
+   ```bash
+   terraform import secretsafe_folder.example <folder-id>
+   terraform import secretsafe_folder_credential.example <credential-id>
+   terraform import secretsafe_folder_file.example <file-id>
+   ```
+
+4. Adicionar testes unitários para validar import bem-sucedido e tratamento de erros
+
+**Nota:** A seção "## Import" foi removida da documentação até que essa funcionalidade seja implementada.

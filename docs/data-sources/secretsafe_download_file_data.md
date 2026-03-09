@@ -33,3 +33,16 @@ locals {
 - `secret_id` - (String) The secret ID
 - `file_name` - (String) The name of the file as stored in Secret Safe
 - `file_content_base64` - (String, Sensitive) The file content encoded as base64 (base64 encoding is used because Terraform does not support binary values)
+- `title` - (String) The title of the file secret
+- `description` - (String) The description of the file secret
+- `folder_id` - (String) The ID of the parent folder
+- `file_hash` - (String) SHA-256 hash of the file content
+- `owner_id` - (Number) ID of the secret owner
+- `created_on` - (String) Timestamp when the file was created (RFC3339 format)
+- `created_by` - (String) User who created the file secret
+- `modified_on` - (String) Timestamp when the file was last modified (RFC3339 format)
+- `modified_by` - (String) User who last modified the file secret
+- `owner` - (String) Name of the secret owner
+- `folder_path` - (String) Full path to the parent folder
+- `owner_type` - (String) Type of owner (e.g., "User", "Group")
+- `notes` - (String) Additional notes about the file secret
