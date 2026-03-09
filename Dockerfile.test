@@ -17,8 +17,8 @@ RUN dotnet publish BeyondTrust.SecretSafeProvider/BeyondTrust.SecretSafeProvider
 FROM hashicorp/terraform:latest
 
 # Provider binary
-COPY --from=build /publish/terraform-provider-secretsafe /providers/terraform-provider-secretsafe
-RUN chmod +x /providers/terraform-provider-secretsafe
+COPY --from=build /publish/terraform-provider-beyondtrust-secretsafe /providers/terraform-provider-beyondtrust-secretsafe
+RUN chmod +x /providers/terraform-provider-beyondtrust-secretsafe
 
 # Configure dev_overrides so terraform uses the local binary instead of the registry
 RUN printf 'provider_installation {\n  dev_overrides {\n    "beyondtrust/secretsafe" = "/providers"\n  }\n  direct {}\n}\n' \
@@ -28,6 +28,6 @@ RUN printf 'provider_installation {\n  dev_overrides {\n    "beyondtrust/secrets
 COPY terraform/ /workspace/
 WORKDIR /workspace
 
-# ENTRYPOINT ["/providers/terraform-provider-secretsafe"]
+# ENTRYPOINT ["/providers/terraform-provider-beyondtrust-secretsafe"]
 
 ENTRYPOINT ["terraform", "plan"]

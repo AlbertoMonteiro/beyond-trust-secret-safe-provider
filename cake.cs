@@ -48,7 +48,7 @@ Task("Coverage")
             .Append($"-reports:{coverageOutput}")
             .Append($"-targetdir:{coverageReport}")
             .Append("-reporttypes:Html;Badges")
-            .Append("-assemblyfilters:+terraform-provider-secretsafe")
+            .Append("-assemblyfilters:+terraform-provider-beyondtrust-secretsafe")
             .Append("-classfilters:-BeyondTrust.SecretSafeProvider.Proto.*")
     });
 

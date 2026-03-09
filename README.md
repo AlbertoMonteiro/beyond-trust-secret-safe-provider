@@ -21,7 +21,7 @@ A Terraform provider for [BeyondTrust Secret Safe](https://www.beyondtrust.com/s
 terraform {
   required_providers {
     secretsafe = {
-      source = "beyondtrust/secretsafe"
+      source = "albertomonteiro/beyondtrust-secretsafe"
     }
   }
 }

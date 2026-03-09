@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 env:
-  PROVIDER_NAME: secretsafe
+  PROVIDER_NAME: beyondtrust-secretsafe
   DOTNET_VERSION: '10.0'
 
 jobs:
@@ -22,7 +22,6 @@ jobs:
         include:
           # Linux (Alpine Docker / musl — StaticExecutable=false to preserve dlopen)
           - { os: linux,   arch: amd64, rid: linux-musl-x64,   platform: linux/amd64,  runner: ubuntu-latest,    use_qemu: false }
-          # Windows
           - { os: windows, arch: amd64, rid: win-x64,          runner: windows-latest, use_qemu: false }
 
     steps:
@@ -80,12 +79,11 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           BINARY="terraform-provider-${PROVIDER_NAME}"
-          BINARY_VERSIONED="terraform-provider-${PROVIDER_NAME}_v${VERSION}"
           ZIPNAME="${BINARY}_${VERSION}_${{ matrix.os }}_${{ matrix.arch }}.zip"
 
-          cp "dist/${{ matrix.os }}_${{ matrix.arch }}/${BINARY}" "${BINARY_VERSIONED}"
-          zip "${ZIPNAME}" "${BINARY_VERSIONED}" LICENSE README.md
-          rm "${BINARY_VERSIONED}"
+          cp "dist/${{ matrix.os }}_${{ matrix.arch }}/${BINARY}" "${BINARY}"
+          zip "${ZIPNAME}" "${BINARY}"
+          rm "${BINARY}"
           echo "Built: ${ZIPNAME}"
 
       - name: Package binary into zip (Windows)
@@ -94,13 +92,10 @@ jobs:
         run: |
           $version = $env:GITHUB_REF_NAME -replace '^v', ''
           $binary  = "terraform-provider-$env:PROVIDER_NAME"
-          $binaryVersioned = "${binary}_v${version}.exe"
           $zipName = "${binary}_${version}_${{ matrix.os }}_${{ matrix.arch }}.zip"
           $src     = "dist\${{ matrix.os }}_${{ matrix.arch }}\${binary}.exe"
 
-          Copy-Item -Path $src -Destination $binaryVersioned
-          Compress-Archive -Path $binaryVersioned, LICENSE, README.md -DestinationPath $zipName
-          Remove-Item -Path $binaryVersioned
+          Compress-Archive -Path $src -DestinationPath $zipName
           Write-Host "Built: $zipName"
 
       - name: Upload artifact
@@ -117,9 +112,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -137,31 +129,12 @@ jobs:
             echo "No zip artifacts found — skipping release."
           fi
 
-      - name: Generate manifest.json
-        if: steps.check.outputs.has_artifacts == 'true'
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          MANIFEST_FILE="terraform-provider-${PROVIDER_NAME}_${VERSION}_manifest.json"
-
-          cat > "${MANIFEST_FILE}" << 'MANIFEST_EOF'
-          {
-            "version": 1,
-            "metadata": {
-              "protocol_versions": ["5.2"]
-            }
-          }
-          MANIFEST_EOF
-
-          cat "${MANIFEST_FILE}"
-
       - name: Generate SHA256SUMS
         if: steps.check.outputs.has_artifacts == 'true'
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           SUMS_FILE="terraform-provider-${PROVIDER_NAME}_${VERSION}_SHA256SUMS"
-          MANIFEST_FILE="terraform-provider-${PROVIDER_NAME}_${VERSION}_manifest.json"
-
-          sha256sum *.zip "${MANIFEST_FILE}" > "${SUMS_FILE}"
+          sha256sum *.zip > "${SUMS_FILE}"
           cat "${SUMS_FILE}"
 
       - name: Import GPG key
@@ -170,19 +143,13 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          git_user_signingkey: true
-          git_commit_gpgsign: true
-          git_tag_gpgsign: true
 
       - name: Sign SHA256SUMS
         if: steps.check.outputs.has_artifacts == 'true'
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           SUMS_FILE="terraform-provider-${PROVIDER_NAME}_${VERSION}_SHA256SUMS"
-          # Generate detached signature (ASCII-armored format)
-          gpg --batch --yes --armor --detach-sign "${SUMS_FILE}"
-          # Rename .asc to .sig for Terraform Registry
-          mv "${SUMS_FILE}.asc" "${SUMS_FILE}.sig"
+          gpg --batch --yes --detach-sign "${SUMS_FILE}"
           ls -la "${SUMS_FILE}"*
 
       - name: Create GitHub Release
@@ -191,7 +158,6 @@ jobs:
         with:
           files: |
             *.zip
-            *_manifest.json
             *_SHA256SUMS
             *_SHA256SUMS.sig
           generate_release_notes: true

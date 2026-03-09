@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     secretsafe = {
-      source = "beyondtrust/secretsafe"
+      source = "albertomonteiro/beyondtrust-secretsafe"
     }
   }
 }
