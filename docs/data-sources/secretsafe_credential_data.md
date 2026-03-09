@@ -1,12 +1,12 @@
 # Data Source: secretsafe_credential_data
 
-Retrieve credential data from BeyondTrust Secret Safe.
+Retrieve username and password credentials from BeyondTrust Secret Safe.
 
 ## Example
 
 ```hcl
 data "secretsafe_credential_data" "example" {
-  # Configuration
+  secret_id = "12345678-1234-1234-1234-123456789abc"
 }
 
 output "username" {
@@ -17,14 +17,18 @@ output "password" {
   value     = data.secretsafe_credential_data.example.password
   sensitive = true
 }
+
+resource "aws_db_instance" "example" {
+  username = data.secretsafe_credential_data.example.username
+  password = data.secretsafe_credential_data.example.password
+}
 ```
 
 ## Arguments
 
-- `id` - (Required) The credential ID in BeyondTrust Secret Safe
+- `secret_id` - (Required) The UUID of the secret in BeyondTrust Secret Safe
 
 ## Attributes
 
-- `username` - The credential username
-- `password` - The credential password
-- `domain` - The credential domain (if applicable)
+- `username` - (Computed) The username from the credential secret
+- `password` - (Computed, Sensitive) The password from the credential secret

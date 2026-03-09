@@ -1,18 +1,17 @@
 # BeyondTrust Secret Safe Provider
 
-The BeyondTrust Secret Safe provider is used to interact with BeyondTrust Secret Safe secrets.
+Terraform provider for **BeyondTrust Secret Safe** using **.NET Native AOT**, **Slim Builder**, and **Terraform Plugin Protocol v5.2**.
 
-## Authentication
+## Overview
 
-Configure the provider with your Secret Safe credentials:
+The BeyondTrust Secret Safe provider allows you to manage and retrieve secrets from BeyondTrust Secret Safe in your Terraform configurations.
 
-```hcl
-provider "secretsafe" {
-  # Configuration options
-}
-```
+## Supported Data Sources
 
-## Example
+- `secretsafe_credential_data` — Retrieve username/password credentials from a secret
+- `secretsafe_download_file_data` — Download file content from a secret as base64
+
+## Example Usage
 
 ```hcl
 terraform {
@@ -24,11 +23,12 @@ terraform {
 }
 
 provider "secretsafe" {
-  # Configure provider
+  # Configure your Secret Safe connection
 }
 
+# Retrieve credential data
 data "secretsafe_credential_data" "example" {
-  # Data source configuration
+  secret_id = "your-secret-id"
 }
 
 output "username" {
@@ -37,6 +37,16 @@ output "username" {
 
 output "password" {
   value     = data.secretsafe_credential_data.example.password
+  sensitive = true
+}
+
+# Download file content
+data "secretsafe_download_file_data" "example" {
+  secret_id = "your-file-secret-id"
+}
+
+output "file_content" {
+  value     = data.secretsafe_download_file_data.example.file_content_base64
   sensitive = true
 }
 ```
