@@ -35,7 +35,9 @@
       "Bash(dotnet build BeyondTrust.SecretSafeProvider.Tests/BeyondTrust.SecretSafeProvider.Tests.csproj)",
       "Bash(dotnet list BeyondTrust.SecretSafeProvider.Tests package --include-transitive)",
       "Read(//c/Users/alber/.nuget/packages/aspire.hosting.testing/13.1.2/**)",
-      "Read(//c/Users/alber/.nuget/packages/aspire.hosting/13.1.2/**)"
+      "Read(//c/Users/alber/.nuget/packages/aspire.hosting/13.1.2/**)",
+      "Bash(dotnet build BeyondTrust.SecretSafeProvider.AppHost/BeyondTrust.SecretSafeProvider.AppHost.csproj)",
+      "Bash(dotnet build)"
     ]
   }
 }
