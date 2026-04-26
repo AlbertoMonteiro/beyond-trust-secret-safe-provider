@@ -20,8 +20,8 @@ jobs:
     strategy:
       matrix:
         include:
-          # Linux (Alpine Docker / musl — StaticExecutable=false to preserve dlopen)
-          - { os: linux,   arch: amd64, rid: linux-musl-x64,   platform: linux/amd64,  runner: ubuntu-latest,    use_qemu: false }
+          # Linux (glibc — compatible with Debian/Ubuntu/RHEL based images; also runs on Alpine via gcompat)
+          - { os: linux,   arch: amd64, rid: linux-x64,        platform: linux/amd64,  runner: ubuntu-latest,    use_qemu: false }
           - { os: windows, arch: amd64, rid: win-x64,          runner: windows-latest, use_qemu: false }
 
     steps:
@@ -34,17 +34,23 @@ jobs:
         if: matrix.use_qemu
         uses: docker/setup-qemu-action@v3
 
-      - name: Build via Alpine Docker (Native AOT / musl)
+      # Build inside Debian 12 (bookworm, glibc 2.36) for maximum runtime compatibility.
+      # Linking against an older glibc lets the binary also run on newer distros (Ubuntu,
+      # Debian 13, RHEL 9+) and on Alpine when `gcompat` + `openssl` are installed.
+      - name: Build via Debian bookworm Docker (Native AOT / glibc 2.36)
         if: matrix.os == 'linux'
         run: |
           docker run --rm \
             --platform ${{ matrix.platform }} \
             -v "${{ github.workspace }}:/src" \
             -w /src \
-            mcr.microsoft.com/dotnet/sdk:10.0-alpine \
+            debian:bookworm-slim \
             sh -c "
-              apk add --no-cache clang gcc build-base zlib-dev musl-dev gcompat && \
-              dotnet publish BeyondTrust.SecretSafeProvider/BeyondTrust.SecretSafeProvider.csproj \
+              set -e && \
+              apt-get update -qq && \
+              apt-get install -y -qq --no-install-recommends ca-certificates curl clang zlib1g-dev libssl-dev && \
+              curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel ${DOTNET_VERSION} --install-dir /usr/share/dotnet && \
+              /usr/share/dotnet/dotnet publish BeyondTrust.SecretSafeProvider/BeyondTrust.SecretSafeProvider.csproj \
                 -c Release \
                 -r ${{ matrix.rid }} \
                 -o /src/dist/${{ matrix.os }}_${{ matrix.arch }} \

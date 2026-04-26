@@ -56,7 +56,23 @@ Complete documentation is available in the `/docs` directory:
 
 - **Terraform** >= 0.12
 - **BeyondTrust Secret Safe** instance with API access
-- **Linux/Alpine** for production (Native AOT targets linux-musl-x64)
+- **Linux x64 (glibc)** — the released `linux_amd64` binary is built against glibc 2.36 (Debian 12 / Ubuntu 22.04 or newer).
+
+### Running on Alpine-based images
+
+The provider depends on OpenSSL via `dlopen` (used by ASP.NET Core's TLS stack for the mTLS gRPC channel that Terraform requires). On Alpine (musl libc) you must install a glibc shim and OpenSSL:
+
+```dockerfile
+RUN apk add --no-cache gcompat openssl
+```
+
+Without `gcompat`, Terraform reports the misleading error:
+
+```
+fork/exec .../terraform-provider-beyondtrust-secretsafe: no such file or directory
+```
+
+even though the binary file exists — the kernel cannot resolve the glibc dynamic linker.
 
 ## Development
 
