@@ -129,7 +129,7 @@ Two relatively recent additions to the .NET Native AOT toolchain made this possi
 
 - **Binary size grows from ~17 MB (dynamic glibc) to ~22 MB.** Acceptable — Terraform providers are downloaded once per registry cache, not per invocation.
 - **OpenSSL CVE response now requires a provider rebuild + release** instead of `apk upgrade openssl` on the host. Documented as part of the release process; we rebuild on every .NET / OpenSSL package update.
-- **Licensing:** OpenSSL v3 is Apache 2.0, but static linking requires shipping the OpenSSL license alongside the binary in the registry release artifacts.
+- **Licensing:** OpenSSL v3 is Apache 2.0; static linking is treated as binary redistribution, so the license text must accompany the binary. The release workflow bundles `THIRD_PARTY_LICENSES/OPENSSL-LICENSE.txt` as `OPENSSL-LICENSE` inside the `linux_amd64` zip; `THIRD_PARTY_NOTICES.md` at the repo root documents this. Windows (Schannel) and macOS (SecureTransport) builds do not link OpenSSL and do not bundle the file.
 - **Build host must be Alpine (musl).** `StaticExecutable=true` does not work against glibc — glibc itself is hostile to full static linking ([dotnet/runtime#100230](https://github.com/dotnet/runtime/issues/100230)).
 - **`gcompat` is required inside the build image** so the glibc-only `protoc` shipped by `Grpc.Tools` can run during the build. It is **not** included in the final binary.
 

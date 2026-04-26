@@ -95,7 +95,17 @@ jobs:
           ZIPNAME="${BINARY}_${VERSION}_${{ matrix.os }}_${{ matrix.arch }}.zip"
 
           cp "dist/${{ matrix.os }}_${{ matrix.arch }}/${BINARY}" "${BINARY}"
-          zip "${ZIPNAME}" "${BINARY}"
+
+          # Linux binary statically links OpenSSL (Apache 2.0); ship the license
+          # alongside the binary to satisfy redistribution requirements. macOS uses
+          # SecureTransport and Windows uses Schannel, so they don't bundle it.
+          if [ "${{ matrix.os }}" = "linux" ]; then
+            cp THIRD_PARTY_LICENSES/OPENSSL-LICENSE.txt OPENSSL-LICENSE
+            zip "${ZIPNAME}" "${BINARY}" OPENSSL-LICENSE
+            rm OPENSSL-LICENSE
+          else
+            zip "${ZIPNAME}" "${BINARY}"
+          fi
           rm "${BINARY}"
           echo "Built: ${ZIPNAME}"
 
